@@ -1,28 +1,28 @@
 # modules/acm/variables.tf
 
 variable "domain_name" {
-  description = "Nombre de dominio principal para el certificado"
+  description = "Main domain name for the certificate"
   type        = string
 }
 
 variable "subject_alternative_names" {
-  description = "Lista de dominios adicionales (SANs)"
+  description = "List of additional domains (SANs)"
   type        = list(string)
   default     = []
 }
 
 variable "environment" {
-  description = "Entorno (develop/production)"
+  description = "Target environment (develop/production)"
   type        = string
 }
 
 variable "zone_id" {
-  description = "ID de la zona de Route 53 para validación DNS"
+  description = "Route 53 zone ID for DNS validation"
   type        = string
 }
 
 variable "tags" {
-  description = "Tags adicionales para el recurso"
+  description = "Additional tags for the resource"
   type        = map(string)
   default     = {}
 }

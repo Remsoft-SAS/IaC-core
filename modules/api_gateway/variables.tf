@@ -1,35 +1,35 @@
 # modules/api_gateway/variables.tf
 
 variable "api_name" {
-  description = "Nombre base de la API"
+  description = "Base name of the API"
   type        = string
 }
 
 variable "description" {
-  description = "Descripción de la API"
+  description = "API Description"
   type        = string
   default     = "Managed by Terraform"
 }
 
 variable "environment" {
-  description = "Entorno (develop/production)"
+  description = "Target environment (develop/production)"
   type        = string
 }
 
 variable "endpoint_type" {
-  description = "Tipo de endpoint (REGIONAL, EDGE, PRIVATE)"
+  description = "Endpoint type (REGIONAL, EDGE, PRIVATE)"
   type        = string
   default     = "REGIONAL"
 }
 
 variable "binary_media_types" {
-  description = "Lista de binary media types soportados"
+  description = "List of supported binary media types"
   type        = list(string)
   default     = ["*/*"]
 }
 
 variable "endpoints" {
-  description = "Lista de endpoints y su configuración"
+  description = "List of endpoints and their configuration"
   type = list(object({
     path                 = string
     http_method          = string
@@ -42,61 +42,61 @@ variable "endpoints" {
 }
 
 variable "enable_cors" {
-  description = "Habilitar CORS para todos los endpoints"
+  description = "Enable CORS for all endpoints"
   type        = bool
   default     = true
 }
 
 variable "cors_allow_origin" {
-  description = "Orígenes permitidos para CORS"
+  description = "Allowed origins for CORS"
   type        = string
   default     = "*"
 }
 
 variable "cors_allow_credentials" {
-  description = "Indica si se permiten credenciales en CORS"
+  description = "Indicates if credentials are allowed in CORS"
   type        = bool
   default     = true
 }
 
 variable "enable_access_logs" {
-  description = "Habilitar logs de acceso en CloudWatch"
+  description = "Enable access logs in CloudWatch"
   type        = bool
   default     = false
 }
 
 variable "manage_api_gateway_account" {
-  description = "Si es true, configura el rol global de CloudWatch para la cuenta en esta región. Solo debe activarse en un microservicio o stack base."
+  description = "If true, configures the global CloudWatch role for the account in this region. Should only be active in one service or base stack."
   type        = bool
   default     = false
 }
 
 variable "log_retention_days" {
-  description = "Días de retención de logs en CloudWatch"
+  description = "Log retention days in CloudWatch"
   type        = number
   default     = 7
 }
 
 variable "access_log_format" {
-  description = "Formato de los logs de acceso en JSON"
+  description = "Access log format in JSON"
   type        = string
   default     = "{ \"requestId\":\"$context.requestId\", \"ip\":\"$context.identity.sourceIp\", \"caller\":\"$context.identity.caller\", \"user\":\"$context.identity.user\", \"requestTime\":\"$context.requestTime\", \"httpMethod\":\"$context.httpMethod\", \"resourcePath\":\"$context.resourcePath\", \"status\":\"$context.status\", \"protocol\":\"$context.protocol\", \"responseLength\":\"$context.responseLength\" }"
 }
 
 variable "throttling_burst_limit" {
-  description = "Límite de ráfaga de peticiones"
+  description = "Burst request limit"
   type        = number
   default     = 1000
 }
 
 variable "throttling_rate_limit" {
-  description = "Límite de tasa de peticiones por segundo"
+  description = "Rate request limit per second"
   type        = number
   default     = 500
 }
 
 variable "tags" {
-  description = "Tags adicionales para los recursos"
+  description = "Additional tags for resources"
   type        = map(string)
   default     = {}
 }

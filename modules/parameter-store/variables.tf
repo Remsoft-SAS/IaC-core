@@ -1,12 +1,12 @@
 # modules/parameter-store/variables.tf
 
 variable "environment" {
-  description = "Entorno (develop/production)"
+  description = "Target environment (develop/production)"
   type        = string
 }
 
 variable "parameters" {
-  description = "Lista de parámetros a crear en Parameter Store"
+  description = "List of parameters to create in Parameter Store"
   type = list(object({
     name        = string
     value       = string

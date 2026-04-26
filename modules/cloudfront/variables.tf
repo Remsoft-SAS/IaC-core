@@ -1,46 +1,46 @@
 # modules/cloudfront/variables.tf
 
 variable "comment" {
-  description = "Comentario descriptivo para la distribución"
+  description = "Descriptive comment for the distribution"
   type        = string
 }
 
 variable "environment" {
-  description = "Entorno (develop/production)"
+  description = "Target environment (develop/production)"
   type        = string
 }
 
 variable "s3_bucket_domain_name" {
-  description = "Nombre de dominio regional del bucket S3"
+  description = "Regional domain name of the S3 bucket"
   type        = string
 }
 
 variable "default_root_object" {
-  description = "Objeto raíz por defecto"
+  description = "Default root object"
   type        = string
   default     = "index.html"
 }
 
 variable "price_class" {
-  description = "Clase de precio (PriceClass_100, PriceClass_200, PriceClass_All)"
+  description = "Price class (PriceClass_100, PriceClass_200, PriceClass_All)"
   type        = string
   default     = "PriceClass_100"
 }
 
 variable "aliases" {
-  description = "Lista de dominios personalizados (CNAMEs)"
+  description = "List of custom domain names (CNAMEs)"
   type        = list(string)
   default     = []
 }
 
 variable "certificate_arn" {
-  description = "ARN del certificado ACM (debe estar en us-east-1)"
+  description = "ARN of the ACM certificate (must be in us-east-1)"
   type        = string
   default     = null
 }
 
 variable "tags" {
-  description = "Tags adicionales para el recurso"
+  description = "Additional tags for the resource"
   type        = map(string)
   default     = {}
 }

@@ -1,5 +1,5 @@
 # modules/cloudfront/main.tf
-# Módulo para CloudFront CDN con soporte para S3 y dominios personalizados
+# Module for CloudFront CDN with S3 support and custom domains
 
 resource "aws_cloudfront_origin_access_control" "this" {
   name                              = "${var.comment}-${var.environment}"

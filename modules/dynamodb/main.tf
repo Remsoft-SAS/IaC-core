@@ -1,5 +1,5 @@
 # modules/dynamodb/main.tf
-# Módulo genérico para tablas DynamoDB
+# Generic module for DynamoDB tables
 
 locals {
   table_name = "${var.table_name}-${var.environment}"
@@ -13,7 +13,7 @@ resource "aws_dynamodb_table" "this" {
   read_capacity  = var.billing_mode == "PROVISIONED" ? var.read_capacity : null
   write_capacity = var.billing_mode == "PROVISIONED" ? var.write_capacity : null
 
-  # Solo declarar atributos usados en keys o índices
+  # Only declare attributes used in keys or indexes
   dynamic "attribute" {
     for_each = var.attributes
     content {
@@ -56,22 +56,22 @@ resource "aws_dynamodb_table" "this" {
     }
   }
 
-  # Point-in-time recovery — siempre habilitado en producción
+  # Point-in-time recovery — always enabled in production
   point_in_time_recovery {
     enabled = var.enable_point_in_time_recovery
   }
 
-  # Encriptación server-side
+  # Server-side encryption
   server_side_encryption {
     enabled     = var.enable_encryption
     kms_key_arn = var.kms_key_arn
   }
 
-  # Streams para event-driven (WebSockets, triggers, etc.)
+  # Streams for event-driven architectures (WebSockets, triggers, etc.)
   stream_enabled   = var.enable_streams
   stream_view_type = var.enable_streams ? var.stream_view_type : null
 
-  # Tabla global (multi-región)
+  # Global table (multi-region)
   dynamic "replica" {
     for_each = var.replica_regions
     content {

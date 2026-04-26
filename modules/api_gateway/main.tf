@@ -1,5 +1,5 @@
 # modules/api_gateway/main.tf
-# Módulo genérico para API Gateway REST — rutas y métodos dinámicos via for_each
+# Generic REST API Gateway module — dynamic routes and methods via for_each
 
 locals {
   all_unique_paths = distinct([for ep in var.endpoints : ep.path])
@@ -44,7 +44,7 @@ resource "aws_api_gateway_rest_api" "this" {
   )
 }
 
-# ── Recursos (paths) ─────────────────────────────────────────────────────────
+# ── Resources (paths) ─────────────────────────────────────────────────────────
 
 resource "aws_api_gateway_resource" "endpoints" {
   for_each = toset(local.resource_paths)
@@ -54,7 +54,7 @@ resource "aws_api_gateway_resource" "endpoints" {
   path_part   = each.value
 }
 
-# ── Métodos ──────────────────────────────────────────────────────────────────
+# ── Methods ──────────────────────────────────────────────────────────────────
 
 resource "aws_api_gateway_method" "endpoints" {
   for_each = { for ep in var.endpoints : "${ep.path}#${ep.http_method}" => ep }
@@ -72,7 +72,7 @@ resource "aws_api_gateway_method" "endpoints" {
   api_key_required = each.value.api_key_required
 }
 
-# ── Integraciones Lambda ──────────────────────────────────────────────────────
+# ── Lambda Integrations ──────────────────────────────────────────────────────
 
 resource "aws_api_gateway_integration" "lambda" {
   for_each = { for ep in var.endpoints : "${ep.path}#${ep.http_method}" => ep }
@@ -141,7 +141,7 @@ resource "aws_api_gateway_integration_response" "options" {
   }
 }
 
-# ── Gateway Responses con CORS ────────────────────────────────────────────────
+# ── Gateway Responses with CORS ───────────────────────────────────────────────
 
 resource "aws_api_gateway_gateway_response" "cors_4xx" {
   count = var.enable_cors ? 1 : 0
@@ -188,7 +188,7 @@ resource "aws_api_gateway_deployment" "this" {
     create_before_destroy = true
   }
 
-  # Fuerza redeploy cuando cambia cualquier recurso de la API
+  # Force redeploy when any API resource changes
   triggers = {
     redeployment = sha1(jsonencode([
       aws_api_gateway_rest_api.this,
@@ -208,7 +208,7 @@ resource "aws_api_gateway_stage" "this" {
   rest_api_id   = aws_api_gateway_rest_api.this.id
   stage_name    = var.environment
 
-  # Logging en CloudWatch (opcional)
+  # CloudWatch Logging (optional)
   dynamic "access_log_settings" {
     for_each = var.enable_access_logs ? [1] : []
     content {
@@ -226,7 +226,7 @@ resource "aws_api_gateway_stage" "this" {
   )
 }
 
-# Throttling por defecto para todos los métodos
+# Default throttling for all methods
 resource "aws_api_gateway_method_settings" "all" {
   rest_api_id = aws_api_gateway_rest_api.this.id
   stage_name  = aws_api_gateway_stage.this.stage_name
@@ -238,7 +238,7 @@ resource "aws_api_gateway_method_settings" "all" {
   }
 }
 
-# Log group para access logs
+# Log group for access logs
 resource "aws_cloudwatch_log_group" "api_gateway" {
   count             = var.enable_access_logs ? 1 : 0
   name              = "/aws/apigateway/${var.api_name}-${var.environment}"
@@ -253,7 +253,7 @@ resource "aws_cloudwatch_log_group" "api_gateway" {
   )
 }
 
-# ── Rol IAM para CloudWatch Logs (Interno) ────────────────────────────────────
+# ── IAM Role for CloudWatch Logs (Internal) ───────────────────────────────────
 
 resource "aws_iam_role" "cloudwatch" {
   count = var.enable_access_logs ? 1 : 0
@@ -285,14 +285,14 @@ resource "aws_iam_role_policy_attachment" "cloudwatch" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
-# Nota: aws_api_gateway_account es a nivel de región/cuenta.
-# Para evitar conflictos entre múltiples microservicios, solo se gestiona si manage_api_gateway_account es true.
+# Note: aws_api_gateway_account is region/account wide.
+# To avoid conflicts between multiple services, it's only managed if manage_api_gateway_account is true.
 resource "aws_api_gateway_account" "this" {
   count               = (var.enable_access_logs && var.manage_api_gateway_account) ? 1 : 0
   cloudwatch_role_arn = aws_iam_role.cloudwatch[0].arn
 }
 
-# ── Permisos Lambda ───────────────────────────────────────────────────────────
+# ── Lambda Permissions ────────────────────────────────────────────────────────
 
 resource "aws_lambda_permission" "apigw" {
   for_each = { for ep in var.endpoints : "${ep.path}#${ep.http_method}" => ep }

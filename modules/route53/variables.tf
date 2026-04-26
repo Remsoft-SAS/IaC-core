@@ -1,29 +1,29 @@
 # modules/route53/variables.tf
 
 variable "domain_name" {
-  description = "Nombre del dominio"
+  description = "Domain name"
   type        = string
 }
 
 variable "environment" {
-  description = "Entorno (develop/production)"
+  description = "Target environment (develop/production)"
   type        = string
 }
 
 variable "create_zone" {
-  description = "Indica si se debe crear una nueva zona hospedada"
+  description = "Indicates whether to create a new hosted zone"
   type        = bool
   default     = true
 }
 
 variable "zone_id" {
-  description = "ID de la zona hospedada (si create_zone es false)"
+  description = "Hosted zone ID (if create_zone is false)"
   type        = string
   default     = null
 }
 
 variable "records" {
-  description = "Lista de registros a crear"
+  description = "List of records to create"
   type = list(object({
     name    = string
     type    = string
@@ -39,7 +39,7 @@ variable "records" {
 }
 
 variable "tags" {
-  description = "Tags adicionales para el recurso"
+  description = "Additional tags for the resource"
   type        = map(string)
   default     = {}
 }

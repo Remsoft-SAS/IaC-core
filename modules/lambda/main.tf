@@ -1,12 +1,12 @@
 # modules/lambda/main.tf
-# Módulo para funciones Lambda con rol IAM interno y políticas dinámicas
+# Module for Lambda functions with internal IAM role and dynamic policies
 
 
 locals {
   full_function_name = "${var.function_name}-${var.environment}"
 }
 
-# ── Rol de Ejecución IAM ──────────────────────────────────────────────────────
+# ── IAM Execution Role ──────────────────────────────────────────────────────
 
 resource "aws_iam_role" "this" {
   name = "${local.full_function_name}-role"
@@ -32,20 +32,20 @@ resource "aws_iam_role" "this" {
   )
 }
 
-# Política básica (Logs)
+# Basic policy (Logs)
 resource "aws_iam_role_policy_attachment" "basic" {
   role       = aws_iam_role.this.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-# Política para VPC (si aplica)
+# VPC policy (if applicable)
 resource "aws_iam_role_policy_attachment" "vpc" {
   count      = var.vpc_config != null ? 1 : 0
   role       = aws_iam_role.this.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
-# Políticas Inline Dinámicas
+# Dynamic Inline Policies
 resource "aws_iam_role_policy" "inline" {
   for_each = { for policy in var.inline_policies : policy.name => policy.policy }
 
@@ -54,9 +54,9 @@ resource "aws_iam_role_policy" "inline" {
   policy = each.value
 }
 
-# ── Función Lambda ───────────────────────────────────────────────────────────
+# ── Lambda Function ───────────────────────────────────────────────────────────
 
-# Archivo dummy opcional para permitir la creación inicial sin código real
+# Optional dummy file to allow initial creation without real code
 data "archive_file" "dummy" {
   count       = var.filename == null && var.s3_bucket == null ? 1 : 0
   type        = "zip"
@@ -104,7 +104,7 @@ resource "aws_lambda_function" "this" {
     var.tags
   )
 
-  # Evitar que cambios manuales en el código o despliegues externos rompan Terraform
+  # Prevent manual changes in code or external deployments from breaking Terraform
   lifecycle {
     ignore_changes = [
       filename,
@@ -117,7 +117,7 @@ resource "aws_lambda_function" "this" {
   }
 }
 
-# Log Group con retención configurable
+# Log Group with configurable retention
 resource "aws_cloudwatch_log_group" "this" {
   name              = "/aws/lambda/${local.full_function_name}"
   retention_in_days = var.log_retention_days

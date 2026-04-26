@@ -1,5 +1,5 @@
 # modules/s3/main.tf
-# Módulo genérico para buckets S3 seguros
+# Generic module for secure S3 buckets
 
 resource "aws_s3_bucket" "this" {
   bucket        = var.bucket_name
@@ -15,7 +15,7 @@ resource "aws_s3_bucket" "this" {
   )
 }
 
-# Versionado
+# Versioning
 resource "aws_s3_bucket_versioning" "this" {
   bucket = aws_s3_bucket.this.id
 
@@ -24,7 +24,7 @@ resource "aws_s3_bucket_versioning" "this" {
   }
 }
 
-# Encriptación AES-256
+# AES-256 Encryption
 resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   bucket = aws_s3_bucket.this.id
 
@@ -37,7 +37,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
   }
 }
 
-# Bloquear todo acceso público — el acceso se da via CloudFront o presigned URLs
+# Block all public access — access is given via CloudFront or presigned URLs
 resource "aws_s3_bucket_public_access_block" "this" {
   bucket = aws_s3_bucket.this.id
 
@@ -47,7 +47,7 @@ resource "aws_s3_bucket_public_access_block" "this" {
   restrict_public_buckets = true
 }
 
-# CORS para uploads desde el frontend (presigned URLs)
+# CORS for frontend uploads (presigned URLs)
 resource "aws_s3_bucket_cors_configuration" "this" {
   count  = length(var.allowed_origins) > 0 ? 1 : 0
   bucket = aws_s3_bucket.this.id
@@ -66,7 +66,7 @@ resource "aws_s3_bucket_cors_configuration" "this" {
   }
 }
 
-# Lifecycle para limpiar uploads incompletos y versiones antiguas
+# Lifecycle to clean up incomplete uploads and old versions
 resource "aws_s3_bucket_lifecycle_configuration" "this" {
   bucket = aws_s3_bucket.this.id
 
@@ -105,7 +105,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
   }
 }
 
-# Política del bucket personalizada (opcional)
+# Custom bucket policy (optional)
 resource "aws_s3_bucket_policy" "this" {
   count  = var.bucket_policy != null ? 1 : 0
   bucket = aws_s3_bucket.this.id

@@ -1,5 +1,5 @@
 # modules/sqs/main.tf
-# Módulo genérico para colas SQS con soporte FIFO y Dead Letter Queue
+# Generic module for SQS queues with FIFO and Dead Letter Queue support
 
 locals {
   suffix     = var.fifo_queue ? ".fifo" : ""
@@ -7,7 +7,7 @@ locals {
   dlq_name   = "${var.queue_name}-dlq-${var.environment}${local.suffix}"
 }
 
-# Dead Letter Queue — se crea primero porque la cola principal la referencia
+# Dead Letter Queue — created first because the main queue references it
 resource "aws_sqs_queue" "dlq" {
   count = var.enable_dlq ? 1 : 0
 
@@ -57,7 +57,7 @@ resource "aws_sqs_queue" "this" {
   )
 }
 
-# Política de acceso a la cola (opcional — para acceso cross-account o desde servicios específicos)
+# Queue access policy (optional — for cross-account access or specific services)
 resource "aws_sqs_queue_policy" "this" {
   count = var.queue_policy != null ? 1 : 0
 

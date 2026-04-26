@@ -1,125 +1,125 @@
 # modules/cognito/variables.tf
 
 variable "pool_name" {
-  description = "Nombre base del User Pool de Cognito"
+  description = "Base name of the Cognito User Pool"
   type        = string
 }
 
 variable "environment" {
-  description = "Entorno (develop/production)"
+  description = "Target environment (develop/production)"
   type        = string
 }
 
 variable "username_attributes" {
-  description = "Atributos que pueden usarse para login (phone_number, email)"
+  description = "Attributes that can be used for login (phone_number, email)"
   type        = list(string)
   default     = ["phone_number"]
 }
 
 variable "password_minimum_length" {
-  description = "Longitud mínima de la contraseña"
+  description = "Minimum password length"
   type        = number
   default     = 8
 }
 
 variable "password_require_lowercase" {
-  description = "Requerir minúsculas en la contraseña"
+  description = "Require lowercase in password"
   type        = bool
   default     = true
 }
 
 variable "password_require_numbers" {
-  description = "Requerir números en la contraseña"
+  description = "Require numbers in password"
   type        = bool
   default     = true
 }
 
 variable "password_require_symbols" {
-  description = "Requerir símbolos en la contraseña"
+  description = "Require symbols in password"
   type        = bool
   default     = true
 }
 
 variable "password_require_uppercase" {
-  description = "Requerir mayúsculas en la contraseña"
+  description = "Require uppercase in password"
   type        = bool
   default     = true
 }
 
 variable "temp_password_validity_days" {
-  description = "Días de validez para contraseñas temporales"
+  description = "Days of validity for temporary passwords"
   type        = number
   default     = 7
 }
 
 variable "lambda_pre_signup_arn" {
-  description = "ARN de la Lambda para el trigger Pre Sign-up"
+  description = "ARN of the Lambda for Pre Sign-up trigger"
   type        = string
   default     = null
 }
 
 variable "lambda_define_auth_arn" {
-  description = "ARN de la Lambda para el trigger Define Auth Challenge"
+  description = "ARN of the Lambda for Define Auth Challenge trigger"
   type        = string
   default     = null
 }
 
 variable "lambda_create_auth_arn" {
-  description = "ARN de la Lambda para el trigger Create Auth Challenge"
+  description = "ARN of the Lambda for Create Auth Challenge trigger"
   type        = string
   default     = null
 }
 
 variable "lambda_verify_auth_arn" {
-  description = "ARN de la Lambda para el trigger Verify Auth Challenge Response"
+  description = "ARN of the Lambda for Verify Auth Challenge Response trigger"
   type        = string
   default     = null
 }
 
 variable "lambda_post_confirmation_arn" {
-  description = "ARN de la Lambda para el trigger Post Confirmation"
+  description = "ARN of the Lambda for Post Confirmation trigger"
   type        = string
   default     = null
 }
 
 variable "explicit_auth_flows" {
-  description = "Flujos de autenticación permitidos"
+  description = "Allowed authentication flows"
   type        = list(string)
   default     = ["ALLOW_CUSTOM_AUTH", "ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH"]
 }
 
 variable "access_token_validity_hours" {
-  description = "Validez del Access Token en horas"
+  description = "Access Token validity in hours"
   type        = number
   default     = 1
 }
 
 variable "id_token_validity_hours" {
-  description = "Validez del ID Token en horas"
+  description = "ID Token validity in hours"
   type        = number
   default     = 1
 }
 
 variable "refresh_token_validity_days" {
-  description = "Validez del Refresh Token en días"
+  description = "Refresh Token validity in days"
   type        = number
   default     = 30
 }
 
 variable "callback_urls" {
-  description = "URLs de callback permitidas"
+  description = "Allowed callback URLs"
   type        = list(string)
   default     = []
 }
 
 variable "logout_urls" {
-  description = "URLs de logout permitidas"
+  description = "Allowed logout URLs"
   type        = list(string)
   default     = []
 }
 
 variable "tags" {
-  description = "Tags adicionales para el recurso"
+  description = "Additional tags for the resource"
   type        = map(string)
   default     = {}
 }

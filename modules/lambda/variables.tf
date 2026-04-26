@@ -1,65 +1,65 @@
 # modules/lambda/variables.tf
 
 variable "function_name" {
-  description = "Nombre base de la función Lambda"
+  description = "Base name of the Lambda function"
   type        = string
 }
 
 variable "environment" {
-  description = "Entorno (develop/production)"
+  description = "Target environment (develop/production)"
   type        = string
 }
 
 variable "handler" {
-  description = "Handler de la función (ej: index.handler)"
+  description = "Function handler (e.g., index.handler)"
   type        = string
   default     = "index.handler"
 }
 
 variable "runtime" {
-  description = "Runtime de la función (ej: nodejs18.x)"
+  description = "Execution runtime (e.g., nodejs22.x)"
   type        = string
-  default     = "nodejs18.x"
+  default     = "nodejs22.x"
 }
 
 variable "memory_size" {
-  description = "Memoria asignada a la función en MB"
+  description = "Allocated memory in MB"
   type        = number
   default     = 128
 }
 
 variable "timeout" {
-  description = "Tiempo máximo de ejecución en segundos"
+  description = "Maximum execution time in seconds"
   type        = number
   default     = 30
 }
 
 variable "filename" {
-  description = "Ruta al archivo .zip local (si se usa despliegue local)"
+  description = "Path to local .zip file (for local deployments)"
   type        = string
   default     = null
 }
 
 variable "s3_bucket" {
-  description = "Bucket S3 donde se encuentra el código"
+  description = "S3 bucket where the code is located"
   type        = string
   default     = null
 }
 
 variable "s3_key" {
-  description = "Llave S3 del código"
+  description = "S3 key for the code"
   type        = string
   default     = null
 }
 
 variable "s3_object_version" {
-  description = "Versión del objeto S3"
+  description = "S3 object version"
   type        = string
   default     = null
 }
 
 variable "vpc_config" {
-  description = "Configuración de VPC (subnet_ids y security_group_ids)"
+  description = "VPC configuration (subnet_ids and security_group_ids)"
   type = object({
     subnet_ids         = list(string)
     security_group_ids = list(string)
@@ -68,13 +68,13 @@ variable "vpc_config" {
 }
 
 variable "environment_variables" {
-  description = "Variables de entorno para la función"
+  description = "Environment variables for the function"
   type        = map(string)
   default     = {}
 }
 
 variable "inline_policies" {
-  description = "Lista de políticas inline adicionales {name, policy}"
+  description = "List of additional inline policies {name, policy}"
   type = list(object({
     name   = string
     policy = string
@@ -83,13 +83,13 @@ variable "inline_policies" {
 }
 
 variable "log_retention_days" {
-  description = "Días de retención de logs en CloudWatch"
+  description = "Log retention days in CloudWatch"
   type        = number
   default     = 7
 }
 
 variable "tags" {
-  description = "Tags adicionales para los recursos"
+  description = "Additional tags for resources"
   type        = map(string)
   default     = {}
 }
