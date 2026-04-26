@@ -1,5 +1,5 @@
-# modules/auth/main.tf
-# Módulo para Cognito User Pool con flujo de autenticación personalizado (OTP/Magic Link)
+# modules/cognito/main.tf
+# Módulo genérico para Cognito User Pool totalmente configurable
 
 resource "aws_cognito_user_pool" "this" {
   name = "${var.pool_name}-${var.environment}"
@@ -8,13 +8,13 @@ resource "aws_cognito_user_pool" "this" {
   username_attributes      = var.username_attributes
   auto_verified_attributes = [] # Las Lambdas de trigger controlan la verificación
 
-  # Política de contraseñas permisiva — la autenticación es via OTP, no contraseña
+  # Política de contraseñas configurable
   password_policy {
     minimum_length                   = var.password_minimum_length
-    require_lowercase                = false
-    require_numbers                  = false
-    require_symbols                  = false
-    require_uppercase                = false
+    require_lowercase                = var.password_require_lowercase
+    require_numbers                  = var.password_require_numbers
+    require_symbols                  = var.password_require_symbols
+    require_uppercase                = var.password_require_uppercase
     temporary_password_validity_days = var.temp_password_validity_days
   }
 

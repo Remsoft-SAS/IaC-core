@@ -1,4 +1,4 @@
-# modules/auth/variables.tf
+# modules/cognito/variables.tf
 
 variable "pool_name" {
   description = "Nombre base del User Pool de Cognito"
@@ -20,6 +20,30 @@ variable "password_minimum_length" {
   description = "Longitud mínima de la contraseña"
   type        = number
   default     = 8
+}
+
+variable "password_require_lowercase" {
+  description = "Requerir minúsculas en la contraseña"
+  type        = bool
+  default     = true
+}
+
+variable "password_require_numbers" {
+  description = "Requerir números en la contraseña"
+  type        = bool
+  default     = true
+}
+
+variable "password_require_symbols" {
+  description = "Requerir símbolos en la contraseña"
+  type        = bool
+  default     = true
+}
+
+variable "password_require_uppercase" {
+  description = "Requerir mayúsculas en la contraseña"
+  type        = bool
+  default     = true
 }
 
 variable "temp_password_validity_days" {

@@ -16,7 +16,7 @@ A centralized library of production-ready, reusable Terraform modules for AWS. T
 | [API Gateway](./modules/api_gateway) | REST API with CloudWatch logging, CORS, and Throttling. |
 | [S3](./modules/s3) | Secure buckets with versioning, encryption, and bucket policies. |
 | [DynamoDB](./modules/dynamodb) | NoSQL tables with PITR, autoscaling, and secondary indexes. |
-| [Auth](./modules/auth) | Amazon Cognito User Pools and Clients for authentication. |
+| [Cognito](./modules/cognito) | Amazon Cognito User Pools and Clients for authentication. |
 | [Route 53](./modules/route53) | DNS Hosted Zones and records management. |
 | [ACM](./modules/acm) | SSL/TLS certificates with automatic DNS validation. |
 | [CloudFront](./modules/cloudfront) | CDN for S3 and custom origins with OAC support. |
