@@ -1,29 +1,10 @@
-# Centralized Infrastructure Stacks (IaC-core)
+# 🏢 Remsoft Infrastructure Core (Modules Library)
 
-This repository contains two levels of Terraform code:
-1.  **/modules**: Atomic components (Lambda, S3, Cognito, etc.) designed for high reusability.
-2.  **/stacks**: Composition of modules that represent a complete functional infrastructure unit (e.g., Bootstrap, DNS).
-
-## 🚀 How to use Stacks
-
-Stacks are designed to be called from a project-specific repository (e.g., `rempays_iac-base`). This keeps your project repo agnostic and clean.
-
-### Standard Implementation Example:
-
-```hcl
-module "dns" {
-  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//stacks/dns-certificates?ref=main"
-
-  domain_name = "example.com"
-  environment = "production"
-  aws_region  = "us-east-1"
-}
-```
+This repository is a centralized library of atomic, reusable Terraform modules. It contains the fundamental "bricks" used to build any project infrastructure within the organization.
 
 ## 📂 Repository Structure
 
-- [🏗️ **/stacks**](./stacks/README.md) - High-level infrastructure compositions (Bootstrap, DNS).
-- [🧩 **/modules**](#-available-modules) - Atomic, reusable components.
+- [🧩 **/modules**](#-available-modules) - Atomic, reusable components designed for high flexibility.
 
 ---
 
@@ -44,19 +25,10 @@ module "dns" {
 
 ---
 
-## 🏗️ Available Stacks
-
----
-
 ## 🔗 Related Repositories
 
-- [🚀 **reusable-workflows-core**](https://github.com/Remsoft-SAS/reusable-workflows-core) - The CI/CD engine that triggers these stacks.
-- [📦 **rempays_iac-base**](https://github.com/Remsoft-SAS/rempays_iac-base) - An example of a project-specific repository using these stacks.
-
-## 📝 Best Practices
-1.  **Versioning**: Always use `?ref=main` or a specific tag in the `source` URL.
-2.  **Agnosticism**: Do not hardcode project names inside stacks; use variables.
-3.  **Outputs**: Stacks should provide the necessary outputs (ARNs, IDs) for other microservices to consume via SSM or Data Sources.
+- [🏗️ **IaC-base**](https://github.com/Remsoft-SAS/IaC-base) - The blueprints (Stacks) that use these modules.
+- [🚀 **reusable-workflows-core**](https://github.com/Remsoft-SAS/reusable-workflows-core) - The CI/CD engine.
 
 ---
 
