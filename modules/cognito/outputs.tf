@@ -1,27 +1,27 @@
-# modules/auth/outputs.tf
+# modules/cognito/outputs.tf
 
 output "user_pool_id" {
-  description = "ID del User Pool de Cognito"
+  description = "Cognito User Pool ID"
   value       = aws_cognito_user_pool.this.id
 }
 
 output "user_pool_arn" {
-  description = "ARN del User Pool de Cognito"
+  description = "Cognito User Pool ARN"
   value       = aws_cognito_user_pool.this.arn
 }
 
 output "user_pool_endpoint" {
-  description = "Endpoint del User Pool de Cognito"
+  description = "Cognito User Pool endpoint"
   value       = aws_cognito_user_pool.this.endpoint
 }
 
 output "user_pool_client_id" {
-  description = "ID del User Pool Client"
+  description = "Cognito User Pool Client ID"
   value       = aws_cognito_user_pool_client.this.id
 }
 
 output "user_pool_client_secret" {
-  description = "Secret del User Pool Client (si aplica)"
+  description = "Cognito User Pool Client Secret (if applicable)"
   value       = aws_cognito_user_pool_client.this.client_secret
   sensitive   = true
 }

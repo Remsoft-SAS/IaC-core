@@ -1,16 +1,16 @@
 # modules/s3/outputs.tf
 
 output "bucket_id" {
-  description = "Nombre/ID del bucket S3"
+  description = "S3 bucket Name/ID"
   value       = aws_s3_bucket.this.id
 }
 
 output "bucket_arn" {
-  description = "ARN del bucket S3"
+  description = "S3 bucket ARN"
   value       = aws_s3_bucket.this.arn
 }
 
 output "bucket_domain_name" {
-  description = "Nombre de dominio regional del bucket"
+  description = "S3 bucket regional domain name"
   value       = aws_s3_bucket.this.bucket_regional_domain_name
 }

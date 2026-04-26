@@ -1,14 +1,14 @@
 # modules/cognito/main.tf
-# Módulo genérico para Cognito User Pool totalmente configurable
+# Generic, fully configurable Cognito User Pool module
 
 resource "aws_cognito_user_pool" "this" {
   name = "${var.pool_name}-${var.environment}"
 
-  # Atributos de login — teléfono requerido, email opcional
+  # Login attributes — phone required, email optional
   username_attributes      = var.username_attributes
-  auto_verified_attributes = [] # Las Lambdas de trigger controlan la verificación
+  auto_verified_attributes = [] # Trigger Lambdas control verification
 
-  # Política de contraseñas configurable
+  # Configurable password policy
   password_policy {
     minimum_length                   = var.password_minimum_length
     require_lowercase                = var.password_require_lowercase
@@ -18,16 +18,16 @@ resource "aws_cognito_user_pool" "this" {
     temporary_password_validity_days = var.temp_password_validity_days
   }
 
-  # Triggers de Lambda para flujo personalizado
+  # Lambda Triggers for custom flow
   lambda_config {
     pre_sign_up                    = var.lambda_pre_signup_arn
     define_auth_challenge          = var.lambda_define_auth_arn
     create_auth_challenge          = var.lambda_create_auth_arn
     verify_auth_challenge_response = var.lambda_verify_auth_arn
-    post_confirmation               = var.lambda_post_confirmation_arn
+    post_confirmation              = var.lambda_post_confirmation_arn
   }
 
-  # Configuración de cuenta
+  # Account settings
   account_recovery_setting {
     recovery_mechanism {
       name     = "verified_phone_number"
@@ -35,7 +35,7 @@ resource "aws_cognito_user_pool" "this" {
     }
   }
 
-  # Prevenir borrado accidental en producción
+  # Prevent accidental deletion in production
   deletion_protection = var.environment == "production" ? "ACTIVE" : "INACTIVE"
 
   tags = merge(
@@ -48,7 +48,7 @@ resource "aws_cognito_user_pool" "this" {
   )
 
   lifecycle {
-    # Schema no se puede modificar después de crear — ignorar cambios
+    # Schema cannot be modified after creation — ignore changes
     ignore_changes = [schema]
   }
 }
@@ -57,7 +57,7 @@ resource "aws_cognito_user_pool_client" "this" {
   name         = "${var.pool_name}-client-${var.environment}"
   user_pool_id = aws_cognito_user_pool.this.id
 
-  # Solo flujos de auth necesarios para OTP/Magic Link
+  # Auth flows required for OTP/Magic Link
   explicit_auth_flows = var.explicit_auth_flows
 
   # Token validity
@@ -73,7 +73,7 @@ resource "aws_cognito_user_pool_client" "this" {
 
   prevent_user_existence_errors = "ENABLED"
 
-  # Callback URLs para OAuth (opcional)
+  # Callback URLs for OAuth (optional)
   callback_urls = length(var.callback_urls) > 0 ? var.callback_urls : null
   logout_urls   = length(var.logout_urls) > 0 ? var.logout_urls : null
 

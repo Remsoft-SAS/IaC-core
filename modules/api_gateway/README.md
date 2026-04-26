@@ -1,26 +1,48 @@
-# AWS API Gateway Module
+# API Gateway Module (REST)
 
-Creates a REST API with CloudWatch logging, CORS support, and method throttling.
+Generic module to manage REST API Gateway with dynamic endpoints and methods.
 
-## Features
-- **Internal IAM for Logs**: Manages the CloudWatch role and account-wide settings optionally.
-- **Dynamic Endpoints**: Define multiple endpoints with Lambda integrations in a single list.
-- **Throttling**: Configures rate and burst limits for the API stage.
-- **CORS**: Built-in support for Cross-Origin Resource Sharing.
+---
 
-## Inputs
+## 📥 Inputs
+
 | Name | Description | Type | Required | Default |
 |---|---|---|---|---|
-| `api_name` | Name of the API | `string` | **Yes** | - |
-| `environment` | Deployment environment | `string` | **Yes** | - |
-| `endpoints` | List of endpoint configurations | `list` | **Yes** | - |
-| `enable_access_logs` | Enable CloudWatch logging | `bool` | No | `false` |
-| `manage_api_gateway_account` | Manage global CW role | `bool` | No | `false` |
-| `log_retention_days` | Retention for access logs | `number` | No | `7` |
+| `api_name` | Name of the REST API | `string` | **Yes** | - |
+| `environment` | Target environment (develop/production) | `string` | **Yes** | - |
+| `endpoints` | List of endpoints to create | `list(any)` | **Yes** | - |
+| `description` | Description of the API | `string` | No | `"Managed by Terraform"` |
+| `endpoint_type` | API endpoint type (EDGE, REGIONAL) | `string` | No | `"REGIONAL"` |
+| `enable_cors` | Enable CORS for all resources | `boolean` | No | `true` |
+| `cors_allow_origin` | Allowed origins for CORS | `string` | No | `"*"` |
+| `enable_access_logs` | Enable CloudWatch Access Logs | `boolean` | No | `false` |
+| `tags` | Additional tags for the resource | `map(string)` | No | `{}` |
 
-## Outputs
+## 📤 Outputs
+
 | Name | Description |
 |---|---|
-| `api_id` | ID of the REST API |
-| `api_url` | Base URL of the API stage |
-| `execution_arn` | Execution ARN for Lambda permissions |
+| `api_id` | API Gateway ID |
+| `api_arn` | API Gateway ARN |
+| `invoke_url` | Base URL to invoke the API |
+| `stage_name` | API stage name |
+
+## 📝 Usage Example
+
+```hcl
+module "api" {
+  source = "../../modules/api_gateway"
+
+  api_name    = "rempays-core"
+  environment = "develop"
+  endpoints   = [
+    {
+      path                = "users"
+      http_method         = "GET"
+      authorization       = "NONE"
+      lambda_invoke_arn   = module.lambda_users.invoke_arn
+      lambda_function_name = module.lambda_users.function_name
+    }
+  ]
+}
+```

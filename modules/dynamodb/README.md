@@ -1,25 +1,48 @@
-# AWS DynamoDB Module
+# DynamoDB Module
 
-Module for DynamoDB tables with PITR, autoscaling, and secondary index support.
+Generic module to manage AWS DynamoDB tables with support for GSIs, LSIs, TTL, and Streams.
 
-## Features
-- **Scalability**: Support for PAY_PER_REQUEST or PROVISIONED billing modes.
-- **Security**: Points-In-Time Recovery (PITR) enabled.
-- **Flexibility**: Define GSI (Global Secondary Indexes) and attributes dynamically.
+---
 
-## Inputs
+## 📥 Inputs
+
 | Name | Description | Type | Required | Default |
 |---|---|---|---|---|
-| `table_name` | Name of the table | `string` | **Yes** | - |
-| `environment` | Deployment environment | `string` | **Yes** | - |
-| `hash_key` | Partition key | `string` | **Yes** | - |
-| `range_key` | Sort key (optional) | `string` | No | `null` |
-| `attributes` | List of attribute definitions | `list` | **Yes** | - |
-| `billing_mode` | Billing mode (PAY_PER_REQUEST / PROVISIONED) | `string` | No | `PAY_PER_REQUEST` |
+| `table_name` | Base name of the DynamoDB table | `string` | **Yes** | - |
+| `environment` | Target environment (develop/production) | `string` | **Yes** | - |
+| `hash_key` | Attribute name used as Hash Key | `string` | **Yes** | - |
+| `attributes` | List of table attributes (name and type) | `list(object)` | **Yes** | - |
+| `range_key` | Attribute name used as Range Key | `string` | No | `null` |
+| `billing_mode` | Billing mode: `PROVISIONED` or `PAY_PER_REQUEST` | `string` | No | `"PAY_PER_REQUEST"` |
+| `read_capacity` | Read capacity (if `PROVISIONED`) | `number` | No | `5` |
+| `write_capacity` | Write capacity (if `PROVISIONED`) | `number` | No | `5` |
+| `global_secondary_indexes` | GSI configuration | `any` | No | `[]` |
+| `enable_streams` | Enable DynamoDB Streams | `boolean` | No | `false` |
+| `ttl_attribute` | Attribute name for TTL | `string` | No | `null` |
+| `tags` | Additional tags for the resource | `map(string)` | No | `{}` |
 
-## Outputs
+## 📤 Outputs
+
 | Name | Description |
 |---|---|
-| `table_name` | Name of the table |
-| `table_arn` | ARN of the table |
-| `table_id` | ID of the table |
+| `table_name` | Final name of the DynamoDB table |
+| `table_arn` | DynamoDB table ARN |
+| `table_id` | DynamoDB table ID |
+| `stream_arn` | DynamoDB Stream ARN (if enabled) |
+
+## 📝 Usage Example
+
+```hcl
+module "table" {
+  source = "../../modules/dynamodb"
+
+  table_name  = "rempays-orders"
+  environment = "production"
+  hash_key    = "orderId"
+  
+  attributes = [
+    { name = "orderId", type = "S" },
+    { name = "userId", type = "S" }
+  ]
+}
+```

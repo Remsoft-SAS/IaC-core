@@ -1,5 +1,5 @@
 # modules/parameter-store/main.tf
-# Módulo para gestionar parámetros en AWS Systems Manager Parameter Store
+# Module to manage parameters in AWS Systems Manager Parameter Store
 
 resource "aws_ssm_parameter" "this" {
   for_each = { for param in var.parameters : param.name => param }
@@ -11,7 +11,7 @@ resource "aws_ssm_parameter" "this" {
   key_id      = each.value.type == "SecureString" ? each.value.key_id : null
   overwrite   = each.value.overwrite
 
-  # Auto-detectar tier según el tamaño del valor
+  # Auto-detect tier based on value length
   tier = length(each.value.value) > 4096 ? "Advanced" : coalesce(each.value.tier, "Standard")
 
   tags = merge(
@@ -24,8 +24,8 @@ resource "aws_ssm_parameter" "this" {
   )
 
   lifecycle {
-    # Ignorar cambios al valor para parámetros marcados como externos
-    # (manejados fuera de Terraform, como secretos rotados manualmente)
+    # Ignore changes to the value for parameters marked as external
+    # (managed outside Terraform, like manually rotated secrets)
     ignore_changes = []
   }
 }

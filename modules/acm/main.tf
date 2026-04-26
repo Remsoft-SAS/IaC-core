@@ -1,5 +1,5 @@
 # modules/acm/main.tf
-# Módulo para gestionar certificados SSL/TLS con validación DNS automática
+# Module to manage SSL/TLS certificates with automated DNS validation
 
 resource "aws_acm_certificate" "this" {
   domain_name               = var.domain_name
@@ -20,7 +20,7 @@ resource "aws_acm_certificate" "this" {
   }
 }
 
-# Crear los registros DNS para la validación automática
+# Create DNS records for automated validation
 resource "aws_route53_record" "validation" {
   for_each = {
     for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
@@ -39,7 +39,7 @@ resource "aws_route53_record" "validation" {
   zone_id         = each.value.zone_id
 }
 
-# Esperar a que la validación se complete
+# Wait for validation to complete
 resource "aws_acm_certificate_validation" "this" {
   certificate_arn         = aws_acm_certificate.this.arn
   validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]

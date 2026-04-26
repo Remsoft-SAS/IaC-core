@@ -1,21 +1,44 @@
-# AWS Parameter Store Module
+# Parameter Store Module
 
-Manages AWS SSM Parameters for centralized configuration.
+Manages AWS SSM Parameters (String, StringList, SecureString) for configuration and secrets.
 
-## Features
-- **Standardized Naming**: Parameters follow a `/project/env/name` convention if desired.
-- **Secure Strings**: Support for encrypted parameters.
+---
 
-## Inputs
+## 📥 Inputs
+
 | Name | Description | Type | Required | Default |
 |---|---|---|---|---|
-| `parameter_name` | Name of the parameter | `string` | **Yes** | - |
-| `environment` | Deployment environment | `string` | **Yes** | - |
-| `value` | Value of the parameter | `string` | **Yes** | - |
-| `type` | Type (String, SecureString) | `string` | No | `SecureString` |
+| `parameters` | List of parameters to create | `list(object)` | **Yes** | - |
+| `environment` | Target environment (develop/production) | `string` | **Yes** | - |
 
-## Outputs
+### Parameter Object structure:
+- `name`: Name of the parameter.
+- `value`: Value of the parameter.
+- `type`: `String`, `StringList`, or `SecureString`.
+- `description`: (Optional) Description.
+- `key_id`: (Optional) KMS key for `SecureString`.
+
+## 📤 Outputs
+
 | Name | Description |
 |---|---|
-| `parameter_arn` | ARN of the parameter |
-| `parameter_name` | Final name used in AWS |
+| `parameters` | Map of created parameters (name => arn) |
+| `parameter_names` | List of names of the created parameters |
+| `parameter_arns` | List of ARNs of the created parameters |
+
+## 📝 Usage Example
+
+```hcl
+module "parameters" {
+  source = "../../modules/parameter-store"
+
+  environment = "production"
+  parameters = [
+    {
+      name  = "/rempays/api/key"
+      value = "super-secret-value"
+      type  = "SecureString"
+    }
+  ]
+}
+```

@@ -1,48 +1,59 @@
-# AWS Infrastructure as Code (IaC) Core
+# Centralized Infrastructure Stacks (IaC-core)
 
-A centralized library of production-ready, reusable Terraform modules for AWS. This repository provides the building blocks for all REMSOFT infrastructure, ensuring security, standardization, and rapid deployment.
+This repository contains two levels of Terraform code:
+1.  **/modules**: Atomic components (Lambda, S3, Cognito, etc.) designed for high reusability.
+2.  **/stacks**: Composition of modules that represent a complete functional infrastructure unit (e.g., Bootstrap, DNS).
 
-## 🚀 Principles
-- **Self-Contained**: Modules manage their own IAM roles and security groups internally.
-- **Agnostic**: Logic is decoupled from specific projects using variables.
-- **Environment-Aware**: Automatic naming conventions based on `${var.environment}`.
-- **Serverless First**: Optimized for Lambda, API Gateway, DynamoDB, and S3 architectures.
+## 🚀 How to use Stacks
 
-## 📦 Available Modules
+Stacks are designed to be called from a project-specific repository (e.g., `rempays_iac-base`). This keeps your project repo agnostic and clean.
 
-| Module | Description |
-|---|---|
-| [Lambda](./modules/lambda) | AWS Lambda with internal IAM, dynamic policies, and env merging. |
-| [API Gateway](./modules/api_gateway) | REST API with CloudWatch logging, CORS, and Throttling. |
-| [S3](./modules/s3) | Secure buckets with versioning, encryption, and bucket policies. |
-| [DynamoDB](./modules/dynamodb) | NoSQL tables with PITR, autoscaling, and secondary indexes. |
-| [Cognito](./modules/cognito) | Amazon Cognito User Pools and Clients for authentication. |
-| [Route 53](./modules/route53) | DNS Hosted Zones and records management. |
-| [ACM](./modules/acm) | SSL/TLS certificates with automatic DNS validation. |
-| [CloudFront](./modules/cloudfront) | CDN for S3 and custom origins with OAC support. |
-| [SQS](./modules/sqs) | Simple Queue Service with Dead Letter Queues (DLQ). |
-| [Parameter Store](./modules/parameter-store) | AWS SSM Parameters for configuration management. |
-
-## 🛠️ Usage
-
-Reference modules directly from GitHub in your Terraform stacks:
+### Standard Implementation Example:
 
 ```hcl
-module "service_api" {
-  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/lambda?ref=v1.0.0"
+module "dns" {
+  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//stacks/dns-certificates?ref=main"
 
-  function_name = "my-api"
-  environment   = "production"
-  # ... other inputs
+  domain_name = "example.com"
+  environment = "production"
+  aws_region  = "us-east-1"
 }
 ```
 
-## 🔐 Security
-All modules follow AWS security best practices:
-- Encryption at rest (AES-256 / KMS).
-- Public access blocked by default (S3).
-- Least privilege IAM roles.
-- SSL/TLS enforcement.
+## 📂 Repository Structure
 
-## 📄 License
-Managed by Remsoft SAS. All rights reserved.
+- [🏗️ **/stacks**](./stacks/README.md) - High-level infrastructure compositions (Bootstrap, DNS).
+- [🧩 **/modules**](#-available-modules) - Atomic, reusable components.
+
+---
+
+## 🧩 Available Modules
+
+| Module | Purpose | Required Inputs (Core) |
+|---|---|---|
+| [λ **Lambda**](./modules/lambda/README.md) | Serverless functions | `function_name`, `handler`, `runtime` |
+| [📂 **S3**](./modules/s3/README.md) | Secure storage | `bucket_name`, `environment` |
+| [🔗 **API Gateway**](./modules/api_gateway/README.md) | REST APIs | `api_name`, `endpoints` |
+| [🔐 **Cognito**](./modules/cognito/README.md) | Authentication | `pool_name`, `environment` |
+| [📊 **DynamoDB**](./modules/dynamodb/README.md) | NoSQL Database | `table_name`, `hash_key`, `attributes` |
+| [🌐 **CloudFront**](./modules/cloudfront/README.md) | CDN / Frontend | `s3_bucket_domain_name`, `comment` |
+| [📜 **ACM**](./modules/acm/README.md) | SSL Certificates | `domain_name`, `zone_id` |
+| [📍 **Route53**](./modules/route53/README.md) | DNS Management | `domain_name`, `environment` |
+| [📨 **SQS**](./modules/sqs/README.md) | Message Queues | `queue_name`, `environment` |
+| [🔑 **Parameter Store**](./modules/parameter-store/README.md) | Configuration | `parameters`, `environment` |
+
+---
+
+## 🏗️ Available Stacks
+
+---
+
+## 🔗 Related Repositories
+
+- [🚀 **reusable-workflows-core**](https://github.com/Remsoft-SAS/reusable-workflows-core) - The CI/CD engine that triggers these stacks.
+- [📦 **rempays_iac-base**](https://github.com/Remsoft-SAS/rempays_iac-base) - An example of a project-specific repository using these stacks.
+
+## 📝 Best Practices
+1.  **Versioning**: Always use `?ref=main` or a specific tag in the `source` URL.
+2.  **Agnosticism**: Do not hardcode project names inside stacks; use variables.
+3.  **Outputs**: Stacks should provide the necessary outputs (ARNs, IDs) for other microservices to consume via SSM or Data Sources.

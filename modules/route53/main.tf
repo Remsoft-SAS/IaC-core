@@ -1,5 +1,5 @@
 # modules/route53/main.tf
-# Módulo para gestionar zonas y registros de Route 53
+# Module to manage Route 53 zones and records
 
 resource "aws_route53_zone" "this" {
   count = var.create_zone ? 1 : 0
