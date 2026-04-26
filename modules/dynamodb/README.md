@@ -8,12 +8,14 @@ Module for DynamoDB tables with PITR, autoscaling, and secondary index support.
 - **Flexibility**: Define GSI (Global Secondary Indexes) and attributes dynamically.
 
 ## Inputs
-| Name | Description | Type | Default |
-|---|---|---|---|
-| `table_name` | Name of the table | `string` | - |
-| `hash_key` | Partition key | `string` | - |
-| `range_key` | Sort key (optional) | `string` | `null` |
-| `attributes` | List of attribute definitions | `list` | - |
+| Name | Description | Type | Required | Default |
+|---|---|---|---|---|
+| `table_name` | Name of the table | `string` | **Yes** | - |
+| `environment` | Deployment environment | `string` | **Yes** | - |
+| `hash_key` | Partition key | `string` | **Yes** | - |
+| `range_key` | Sort key (optional) | `string` | No | `null` |
+| `attributes` | List of attribute definitions | `list` | **Yes** | - |
+| `billing_mode` | Billing mode (PAY_PER_REQUEST / PROVISIONED) | `string` | No | `PAY_PER_REQUEST` |
 
 ## Outputs
 | Name | Description |

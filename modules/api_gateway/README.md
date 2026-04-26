@@ -9,12 +9,14 @@ Creates a REST API with CloudWatch logging, CORS support, and method throttling.
 - **CORS**: Built-in support for Cross-Origin Resource Sharing.
 
 ## Inputs
-| Name | Description | Type | Default |
-|---|---|---|---|
-| `api_name` | Name of the API | `string` | - |
-| `endpoints` | List of path/method/lambda configurations | `list` | - |
-| `enable_access_logs` | Enable CloudWatch access logging | `bool` | `false` |
-| `manage_api_gateway_account` | Manage the global CloudWatch role for the account | `bool` | `false` |
+| Name | Description | Type | Required | Default |
+|---|---|---|---|---|
+| `api_name` | Name of the API | `string` | **Yes** | - |
+| `environment` | Deployment environment | `string` | **Yes** | - |
+| `endpoints` | List of endpoint configurations | `list` | **Yes** | - |
+| `enable_access_logs` | Enable CloudWatch logging | `bool` | No | `false` |
+| `manage_api_gateway_account` | Manage global CW role | `bool` | No | `false` |
+| `log_retention_days` | Retention for access logs | `number` | No | `7` |
 
 ## Outputs
 | Name | Description |

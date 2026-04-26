@@ -10,11 +10,13 @@ Generic module for secure S3 buckets with versioning, encryption, and lifecycle 
 - **Bucket Policy**: Support for custom JSON policies (e.g., for CloudFront access).
 
 ## Inputs
-| Name | Description | Type | Default |
-|---|---|---|---|
-| `bucket_name` | Unique name of the bucket | `string` | - |
-| `enable_versioning` | Enable object versioning | `bool` | `true` |
-| `bucket_policy` | Custom JSON policy | `string` | `null` |
+| Name | Description | Type | Required | Default |
+|---|---|---|---|---|
+| `bucket_name` | Unique name of the bucket | `string` | **Yes** | - |
+| `environment` | Deployment environment | `string` | **Yes** | - |
+| `enable_versioning` | Enable object versioning | `bool` | No | `true` |
+| `bucket_policy` | Custom JSON policy | `string` | No | `null` |
+| `force_destroy` | Allow deletion of non-empty bucket | `bool` | No | `false` |
 
 ## Outputs
 | Name | Description |
