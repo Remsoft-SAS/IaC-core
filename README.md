@@ -57,3 +57,7 @@ module "dns" {
 1.  **Versioning**: Always use `?ref=main` or a specific tag in the `source` URL.
 2.  **Agnosticism**: Do not hardcode project names inside stacks; use variables.
 3.  **Outputs**: Stacks should provide the necessary outputs (ARNs, IDs) for other microservices to consume via SSM or Data Sources.
+
+---
+
+remsoft
