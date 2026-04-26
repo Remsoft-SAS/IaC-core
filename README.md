@@ -5,6 +5,7 @@ This repository is a centralized library of atomic, reusable Terraform modules. 
 ## 📂 Repository Structure
 
 - [🧩 **/modules**](#-available-modules) - Atomic, reusable components designed for high flexibility.
+- [📝 **How to contribute**](./CONTRIBUTING.md) - Guide for adding new modules.
 
 ---
 
