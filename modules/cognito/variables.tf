@@ -99,12 +99,30 @@ variable "lambda_user_migration_arn" {
 }
 
 # --- Trigger Enablers (To solve "known after apply" count issues) ---
-variable "enable_pre_signup" { type = bool, default = false }
-variable "enable_define_auth" { type = bool, default = false }
-variable "enable_create_auth" { type = bool, default = false }
-variable "enable_verify_auth" { type = bool, default = false }
-variable "enable_migration" { type = bool, default = false }
-variable "enable_post_confirmation" { type = bool, default = false }
+variable "enable_pre_signup" {
+  type    = bool
+  default = false
+}
+variable "enable_define_auth" {
+  type    = bool
+  default = false
+}
+variable "enable_create_auth" {
+  type    = bool
+  default = false
+}
+variable "enable_verify_auth" {
+  type    = bool
+  default = false
+}
+variable "enable_migration" {
+  type    = bool
+  default = false
+}
+variable "enable_post_confirmation" {
+  type    = bool
+  default = false
+}
 
 # --- DNS & Domain ---
 variable "domain_name" {
