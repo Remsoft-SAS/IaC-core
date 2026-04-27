@@ -111,23 +111,62 @@ variable "custom_domain" {
 }
 
 # --- Providers (Social) ---
-variable "google_client_id" { type = string; default = "" }
-variable "google_client_secret" { type = string; default = ""; sensitive = true }
+variable "google_client_id" {
+  type    = string
+  default = ""
+}
+variable "google_client_secret" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
 
-variable "microsoft_client_id" { type = string; default = "" }
-variable "microsoft_client_secret" { type = string; default = ""; sensitive = true }
-variable "microsoft_tenant_id" { type = string; default = "common" }
+variable "microsoft_client_id" {
+  type    = string
+  default = ""
+}
+variable "microsoft_client_secret" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
+variable "microsoft_tenant_id" {
+  type    = string
+  default = "common"
+}
 
-variable "facebook_client_id" { type = string; default = "" }
-variable "facebook_client_secret" { type = string; default = ""; sensitive = true }
+variable "facebook_client_id" {
+  type    = string
+  default = ""
+}
+variable "facebook_client_secret" {
+  type      = string
+  default   = ""
+  sensitive = true
+}
 
 # --- Client Config ---
-variable "callback_urls" { type = list(string); default = [] }
-variable "logout_urls" { type = list(string); default = [] }
+variable "callback_urls" {
+  type    = list(string)
+  default = []
+}
+variable "logout_urls" {
+  type    = list(string)
+  default = []
+}
 
-variable "access_token_validity_hours" { type = number; default = 1 }
-variable "id_token_validity_hours" { type = number; default = 1 }
-variable "refresh_token_validity_days" { type = number; default = 30 }
+variable "access_token_validity_hours" {
+  type    = number
+  default = 1
+}
+variable "id_token_validity_hours" {
+  type    = number
+  default = 1
+}
+variable "refresh_token_validity_days" {
+  type    = number
+  default = 30
+}
 
 variable "tags" {
   type    = map(string)
