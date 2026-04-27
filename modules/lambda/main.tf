@@ -3,6 +3,9 @@
 
 locals {
   full_function_name = "${var.function_name}-${var.environment}"
+  
+  # Detección automática de tipo de trigger para permisos base
+  is_sqs_trigger = var.event_source_arn != null ? length(regexall(":sqs:", var.event_source_arn)) > 0 : false
 }
 
 # ── IAM Execution Role ──────────────────────────────────────────────────────
@@ -37,6 +40,28 @@ resource "aws_iam_role_policy_attachment" "basic" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+# Automatic SQS Consumer Policy (If trigger is SQS)
+resource "aws_iam_role_policy" "sqs_consumer" {
+  count = local.is_sqs_trigger ? 1 : 0
+  name  = "SQSConsumerPolicy"
+  role  = aws_iam_role.this.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes"
+        ]
+        Effect   = "Allow"
+        Resource = [var.event_source_arn]
+      }
+    ]
+  })
+}
+
 # VPC policy (if applicable)
 resource "aws_iam_role_policy_attachment" "vpc" {
   count      = var.vpc_config != null ? 1 : 0
@@ -44,7 +69,7 @@ resource "aws_iam_role_policy_attachment" "vpc" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
-# Dynamic Inline Policies
+# Dynamic Inline Policies (Additional)
 resource "aws_iam_role_policy" "inline" {
   for_each = { for policy in var.inline_policies : policy.name => policy.policy }
 
