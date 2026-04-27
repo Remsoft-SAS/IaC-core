@@ -9,9 +9,9 @@ data "aws_route53_zone" "selected" {
 }
 
 data "aws_acm_certificate" "wildcard" {
-  count       = var.domain_name != "" ? 1 : 0
-  domain      = "*.${var.domain_name}"
-  statuses    = ["ISSUED"]
+  count       = var.custom_domain != "" ? 1 : 0
+  domain      = var.domain_name != "" ? var.domain_name : split(".", var.custom_domain)[length(split(".", var.custom_domain))-2]
+  statuses    = ["ISSUED", "PENDING_VALIDATION"]
   most_recent = true
 }
 
@@ -197,19 +197,48 @@ resource "aws_cognito_user_pool_client" "this" {
 
 # ── Permissions (Automated) ──────────────────────────────────────────────────
 
-resource "aws_lambda_permission" "triggers" {
-  for_each = {
-    for k, v in {
-      "define"     = var.lambda_define_auth_arn
-      "create"     = var.lambda_create_auth_arn
-      "verify"     = var.lambda_verify_auth_arn
-      "pre-signup" = var.lambda_pre_signup_arn
-      "migration"  = var.lambda_user_migration_arn
-    } : k => v if v != null
-  }
-  statement_id  = "AllowExecutionFromCognito-${each.key}"
+# Individual permissions to avoid for_each "known after apply" issues
+resource "aws_lambda_permission" "pre_signup" {
+  count         = var.lambda_pre_signup_arn != null ? 1 : 0
+  statement_id  = "AllowExecutionFromCognito-PreSignUp"
   action        = "lambda:InvokeFunction"
-  function_name = element(split(":", each.value), length(split(":", each.value)) - 1)
+  function_name = element(split(":", var.lambda_pre_signup_arn), length(split(":", var.lambda_pre_signup_arn)) - 1)
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.this.arn
+}
+
+resource "aws_lambda_permission" "define_auth" {
+  count         = var.lambda_define_auth_arn != null ? 1 : 0
+  statement_id  = "AllowExecutionFromCognito-DefineAuth"
+  action        = "lambda:InvokeFunction"
+  function_name = element(split(":", var.lambda_define_auth_arn), length(split(":", var.lambda_define_auth_arn)) - 1)
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.this.arn
+}
+
+resource "aws_lambda_permission" "create_auth" {
+  count         = var.lambda_create_auth_arn != null ? 1 : 0
+  statement_id  = "AllowExecutionFromCognito-CreateAuth"
+  action        = "lambda:InvokeFunction"
+  function_name = element(split(":", var.lambda_create_auth_arn), length(split(":", var.lambda_create_auth_arn)) - 1)
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.this.arn
+}
+
+resource "aws_lambda_permission" "verify_auth" {
+  count         = var.lambda_verify_auth_arn != null ? 1 : 0
+  statement_id  = "AllowExecutionFromCognito-VerifyAuth"
+  action        = "lambda:InvokeFunction"
+  function_name = element(split(":", var.lambda_verify_auth_arn), length(split(":", var.lambda_verify_auth_arn)) - 1)
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.this.arn
+}
+
+resource "aws_lambda_permission" "migration" {
+  count         = var.lambda_user_migration_arn != null ? 1 : 0
+  statement_id  = "AllowExecutionFromCognito-Migration"
+  action        = "lambda:InvokeFunction"
+  function_name = element(split(":", var.lambda_user_migration_arn), length(split(":", var.lambda_user_migration_arn)) - 1)
   principal     = "cognito-idp.amazonaws.com"
   source_arn    = aws_cognito_user_pool.this.arn
 }
