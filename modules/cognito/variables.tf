@@ -118,6 +118,12 @@ variable "logout_urls" {
   default     = []
 }
 
+variable "supported_identity_providers" {
+  description = "List of identity providers supported by the client (e.g. COGNITO, Google, Microsoft)"
+  type        = list(string)
+  default     = ["COGNITO"]
+}
+
 variable "tags" {
   description = "Additional tags for the resource"
   type        = map(string)

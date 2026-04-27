@@ -73,6 +73,8 @@ resource "aws_cognito_user_pool_client" "this" {
 
   prevent_user_existence_errors = "ENABLED"
 
+  supported_identity_providers = var.supported_identity_providers
+
   # Callback URLs for OAuth (optional)
   callback_urls = length(var.callback_urls) > 0 ? var.callback_urls : null
   logout_urls   = length(var.logout_urls) > 0 ? var.logout_urls : null
