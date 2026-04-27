@@ -128,10 +128,6 @@ resource "aws_cognito_identity_provider" "google" {
     authorize_scopes = "email profile openid"
     client_id        = var.google_client_id
     client_secret    = var.google_client_secret
-    authorize_url    = "https://accounts.google.com/o/oauth2/v2/auth"
-    token_url        = "https://www.googleapis.com/oauth2/v4/token"
-    attributes_url   = "https://openidconnect.googleapis.com/v1/userinfo"
-    jwks_uri         = "https://www.googleapis.com/oauth2/v3/certs"
   }
   attribute_mapping = { email = "email", username = "sub", name = "name" }
 }
