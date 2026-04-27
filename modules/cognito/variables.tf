@@ -52,6 +52,7 @@ variable "temp_password_validity_days" {
   default     = 7
 }
 
+# --- Triggers ---
 variable "lambda_pre_signup_arn" {
   description = "ARN of the Lambda for Pre Sign-up trigger"
   type        = string
@@ -82,6 +83,51 @@ variable "lambda_post_confirmation_arn" {
   default     = null
 }
 
+# --- OAuth & Social ---
+variable "callback_urls" {
+  description = "Allowed callback URLs"
+  type        = list(string)
+  default     = []
+}
+
+variable "logout_urls" {
+  description = "Allowed logout URLs"
+  type        = list(string)
+  default     = []
+}
+
+variable "google_client_id" {
+  description = "Google Client ID for Social Login"
+  type        = string
+  default     = ""
+}
+
+variable "google_client_secret" {
+  description = "Google Client Secret for Social Login"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "microsoft_client_id" {
+  description = "Microsoft Client ID for Social Login"
+  type        = string
+  default     = ""
+}
+
+variable "microsoft_client_secret" {
+  description = "Microsoft Client Secret for Social Login"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "microsoft_tenant_id" {
+  description = "Microsoft Tenant ID (defaults to common for multi-tenant)"
+  type        = string
+  default     = "common"
+}
+
 variable "explicit_auth_flows" {
   description = "Allowed authentication flows"
   type        = list(string)
@@ -104,24 +150,6 @@ variable "refresh_token_validity_days" {
   description = "Refresh Token validity in days"
   type        = number
   default     = 30
-}
-
-variable "callback_urls" {
-  description = "Allowed callback URLs"
-  type        = list(string)
-  default     = []
-}
-
-variable "logout_urls" {
-  description = "Allowed logout URLs"
-  type        = list(string)
-  default     = []
-}
-
-variable "supported_identity_providers" {
-  description = "List of identity providers supported by the client (e.g. COGNITO, Google, Microsoft)"
-  type        = list(string)
-  default     = ["COGNITO"]
 }
 
 variable "tags" {
