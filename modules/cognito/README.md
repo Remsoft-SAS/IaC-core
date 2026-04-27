@@ -1,41 +1,73 @@
-# 🔐 Módulo Cognito: User Pool & Client (Elite Edition)
+# 🔐 AWS Cognito User Pool & Client Module
 
-Módulo ultra-inteligente para gestionar la autenticación en AWS. Se encarga de todo el "trabajo sucio" de DNS, certificados y permisos.
+High-performance Terraform module to manage AWS Cognito infrastructure with native support for Social Identity Providers, Custom Auth Flows, and Automated DNS/SSL management.
 
-## 🚀 Características "Smart"
-- **Auto-Discovery DNS/ACM:** Si pasas `domain_name`, el módulo encuentra solo la Zona de Route53 y el Certificado Wildcard.
-- **Gestión de Dominio Custom:** Crea automáticamente el subdominio de Cognito y el registro DNS Alias.
-- **Permisos de Lambda Automáticos:** Configura los `aws_lambda_permission` para cada trigger sin intervención manual.
-- **Social Login Built-in:** Soporte nativo para Google y Microsoft OIDC.
+## 🚀 Key Features
+- **Zero-Config DNS/ACM:** Automatic discovery of Route53 Zones and Wildcard Certificates via `domain_name`.
+- **Custom Domain Orchestration:** Native management of Cognito Custom Domains and Route53 Alias records.
+- **Smart Lambda Permissions:** Automatic `aws_lambda_permission` creation for all provided triggers.
+- **Native Social Integration:** Built-in OIDC support for Google and Microsoft.
+- **Auto-Provisioned Client:** The User Pool Client automatically enables all active identity providers.
 
-## 📋 Uso "Elite" (Mínimo Código)
-Con solo pasar el dominio y los triggers, el módulo se encarga del resto:
+## 📋 Technical Usage
 
+### Basic (AWS Native Auth)
 ```hcl
 module "cognito" {
-  source        = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cognito?ref=main"
-  pool_name     = "rempays"
-  environment   = "production"
-  
-  # Automatización DNS
-  domain_name   = "rempays.com"
-  custom_domain = "auth.rempays.com"
-
-  # Triggers (Los permisos se crean solos)
-  lambda_create_auth_arn = "arn:aws:lambda:..."
-  
-  # OAuth
-  callback_urls = ["https://app.rempays.com/callback"]
+  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cognito?ref=main"
+  pool_name   = "my-app"
+  environment = "production"
 }
 ```
 
-## ⚙️ Variables destacadas
-| Nombre | Descripción | Default |
-| :--- | :--- | :--- |
-| `domain_name` | Dominio base para descubrimiento (ej: `rempays.online`) | `""` |
-| `custom_domain` | Subdominio completo para Cognito (ej: `auth.rempays.online`) | `""` |
-| `lambda_xxx_arn` | ARNs de triggers (Define, Create, Verify, Pre-Signup) | `null` |
-| `google_client_id` | ID para login con Google | `""` |
+### Advanced (Elite Auth + Social)
+```hcl
+module "cognito" {
+  source        = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cognito?ref=main"
+  pool_name     = "my-app"
+  environment   = "production"
+  domain_name   = "example.com"
+  custom_domain = "auth.example.com"
+
+  # Social Credentials
+  google_client_id     = "GOOGLE_ID"
+  google_client_secret = "GOOGLE_SECRET"
+
+  # OTP / Custom Auth Triggers
+  lambda_create_auth_arn = "arn:aws:lambda:..."
+}
+```
+
+## 📥 Inputs
+
+| Name | Description | Type | Default | Required |
+| :--- | :--- | :--- | :--- | :---: |
+| `pool_name` | Base name for the User Pool | `string` | - | **Yes** |
+| `environment` | Deployment environment (develop/production) | `string` | - | **Yes** |
+| `domain_name` | Base domain for DNS/ACM discovery | `string` | `""` | No |
+| `custom_domain` | Custom subdomain for Cognito (e.g. auth.xxx) | `string` | `""` | No |
+| `username_attributes` | Attributes used for sign-in | `list(string)` | `["phone_number"]` | No |
+| `google_client_id` | Google OAuth Client ID | `string` | `""` | No |
+| `google_client_secret` | Google OAuth Client Secret | `string` | `""` | No |
+| `microsoft_client_id` | Microsoft Azure Client ID | `string` | `""` | No |
+| `microsoft_client_secret` | Microsoft Azure Client Secret | `string` | `""` | No |
+| `lambda_pre_signup_arn` | ARN for Pre Sign-up trigger | `string` | `null` | No |
+| `lambda_define_auth_arn` | ARN for Define Auth Challenge trigger | `string` | `null` | No |
+| `lambda_create_auth_arn` | ARN for Create Auth Challenge trigger | `string` | `null` | No |
+| `lambda_verify_auth_arn` | ARN for Verify Auth Response trigger | `string` | `null` | No |
+| `callback_urls` | Allowed OAuth callback URLs | `list(string)` | `[]` | No |
+| `logout_urls` | Allowed OAuth logout URLs | `list(string)` | `[]` | No |
+| `tags` | Additional tags for resources | `map(string)` | `{}` | No |
+
+## 📤 Outputs
+
+| Name | Description |
+| :--- | :--- |
+| `user_pool_id` | Unique ID of the Cognito User Pool |
+| `user_pool_arn` | Amazon Resource Name (ARN) of the User Pool |
+| `user_pool_endpoint` | Endpoint URL of the User Pool |
+| `user_pool_client_id` | ID of the User Pool Client |
+| `user_pool_client_secret` | Secret of the User Pool Client (Sensitive) |
 
 ---
-*Este módulo está diseñado para ser 100% autónomo y agnóstico al ambiente.*
+*Created by Remsoft SAS - Infrastructure as Code Standard.*
