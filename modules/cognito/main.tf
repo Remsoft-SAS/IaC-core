@@ -1,11 +1,24 @@
 # modules/cognito/main.tf
 
+# --- Data Discovery ---
+data "aws_route53_zone" "selected" {
+  count = var.domain_name != "" ? 1 : 0
+  name  = "${var.domain_name}."
+}
+
+data "aws_acm_certificate" "wildcard" {
+  count       = var.domain_name != "" ? 1 : 0
+  domain      = "*.${var.domain_name}"
+  statuses    = ["ISSUED"]
+  most_recent = true
+}
+
+# --- User Pool ---
 resource "aws_cognito_user_pool" "this" {
   name = "${var.pool_name}-${var.environment}"
 
-  # Login attributes
   username_attributes      = var.username_attributes
-  auto_verified_attributes = [] # Trigger Lambdas control verification
+  auto_verified_attributes = []
 
   password_policy {
     minimum_length                   = var.password_minimum_length
@@ -47,7 +60,48 @@ resource "aws_cognito_user_pool" "this" {
   }
 }
 
-# --- Proveedores Sociales (Opcionales) ---
+# --- Custom Domain & DNS ---
+
+resource "aws_cognito_user_pool_domain" "custom" {
+  count           = var.custom_domain != "" ? 1 : 0
+  domain          = var.custom_domain
+  certificate_arn = data.aws_acm_certificate.wildcard[0].arn
+  user_pool_id    = aws_cognito_user_pool.this.id
+}
+
+resource "aws_route53_record" "auth_alias" {
+  count   = var.custom_domain != "" ? 1 : 0
+  name    = aws_cognito_user_pool_domain.custom[0].domain
+  type    = "A"
+  zone_id = data.aws_route53_zone.selected[0].zone_id
+
+  alias {
+    evaluate_target_health = false
+    name                   = aws_cognito_user_pool_domain.custom[0].cloudfront_distribution
+    zone_id                = "Z2FDTNDATAQYW2"
+  }
+}
+
+# --- Lambda Permissions (Automated) ---
+
+resource "aws_lambda_permission" "triggers" {
+  for_each = {
+    for k, v in {
+      "define"     = var.lambda_define_auth_arn
+      "create"     = var.lambda_create_auth_arn
+      "verify"     = var.lambda_verify_auth_arn
+      "pre-signup" = var.lambda_pre_signup_arn
+    } : k => v if v != null
+  }
+
+  statement_id  = "AllowExecutionFromCognito-${each.key}"
+  action        = "lambda:InvokeFunction"
+  function_name = element(split(":", each.value), length(split(":", each.value)) - 1)
+  principal     = "cognito-idp.amazonaws.com"
+  source_arn    = aws_cognito_user_pool.this.arn
+}
+
+# --- Social Providers ---
 
 resource "aws_cognito_identity_provider" "google" {
   count         = var.google_client_id != "" ? 1 : 0
@@ -95,7 +149,7 @@ resource "aws_cognito_identity_provider" "microsoft" {
   }
 }
 
-# --- Client Configuration ---
+# --- Client ---
 
 resource "aws_cognito_user_pool_client" "this" {
   name         = "${var.pool_name}-client-${var.environment}"
@@ -115,7 +169,6 @@ resource "aws_cognito_user_pool_client" "this" {
 
   prevent_user_existence_errors = "ENABLED"
 
-  # Detectamos automáticamente qué proveedores activar en el cliente
   supported_identity_providers = concat(
     ["COGNITO"],
     var.google_client_id != "" ? ["Google"] : [],
@@ -129,7 +182,6 @@ resource "aws_cognito_user_pool_client" "this" {
   allowed_oauth_flows                  = length(var.callback_urls) > 0 ? ["code"] : []
   allowed_oauth_scopes                 = length(var.callback_urls) > 0 ? ["openid", "email", "phone"] : []
 
-  # Importante: El cliente debe esperar a que los proveedores se creen
   depends_on = [
     aws_cognito_identity_provider.google,
     aws_cognito_identity_provider.microsoft

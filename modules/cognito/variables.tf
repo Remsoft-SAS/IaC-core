@@ -16,6 +16,20 @@ variable "username_attributes" {
   default     = ["phone_number"]
 }
 
+# --- DNS & Domains ---
+variable "domain_name" {
+  description = "Base domain for automatic discovery (e.g. rempays.online)"
+  type        = string
+  default     = ""
+}
+
+variable "custom_domain" {
+  description = "Custom sub-domain for Cognito (e.g. auth.rempays.online)"
+  type        = string
+  default     = ""
+}
+
+# --- Password Policy ---
 variable "password_minimum_length" {
   description = "Minimum password length"
   type        = number
