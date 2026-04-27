@@ -35,8 +35,12 @@ resource "aws_cognito_user_pool" "this" {
 
   # MFA Configuration
   mfa_configuration = var.mfa_configuration
-  software_token_mfa_configuration {
-    enabled = var.mfa_configuration != "OFF"
+  
+  dynamic "software_token_mfa_configuration" {
+    for_each = var.mfa_configuration != "OFF" ? [1] : []
+    content {
+      enabled = true
+    }
   }
 
   # Advanced Security
