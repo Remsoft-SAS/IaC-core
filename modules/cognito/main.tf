@@ -10,7 +10,7 @@ data "aws_route53_zone" "selected" {
 
 data "aws_acm_certificate" "wildcard" {
   count       = var.custom_domain != "" ? 1 : 0
-  domain      = var.domain_name != "" ? var.domain_name : split(".", var.custom_domain)[length(split(".", var.custom_domain))-2]
+  domain      = var.domain_name != "" ? var.domain_name : join(".", slice(split(".", var.custom_domain), 1, length(split(".", var.custom_domain))))
   statuses    = ["ISSUED", "PENDING_VALIDATION"]
   most_recent = true
 }
