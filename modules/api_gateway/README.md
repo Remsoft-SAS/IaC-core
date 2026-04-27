@@ -40,7 +40,7 @@ Each entry in the `endpoints` list supports advanced security settings:
 ### 🔐 Example: Secure vs Public Endpoints
 ```hcl
 module "my_api" {
-  source   = "..."
+  source   = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/api_gateway?ref=main"
   api_name = "gateway"
   
   cognito_user_pool_arns = ["arn:aws:cognito-idp:..."]

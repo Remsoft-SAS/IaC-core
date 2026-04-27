@@ -39,7 +39,7 @@ You can define custom attributes to store business-specific data.
 
 ```hcl
 module "auth" {
-  source    = "..."
+  source    = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cognito?ref=main"
   pool_name = "myapp"
   
   custom_attributes = [

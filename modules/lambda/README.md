@@ -54,7 +54,7 @@ If your function needs to perform additional actions (e.g., writing to an S3 buc
 **Example: Adding S3 Write Access**
 ```hcl
 module "my_lambda" {
-  source        = "..."
+  source        = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/lambda?ref=main"
   function_name = "uploader"
   environment   = "develop"
   

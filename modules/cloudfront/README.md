@@ -43,7 +43,7 @@ This module allows you to serve a frontend and a backend from the same domain.
 ### Example Configuration
 ```hcl
 module "cdn" {
-  source = "..."
+  source  = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cloudfront?ref=main"
   comment = "My App"
   
   s3_bucket_domain_name   = module.s3.bucket_regional_domain_name

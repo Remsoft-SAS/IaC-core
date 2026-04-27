@@ -38,7 +38,7 @@ This module simplifies the connection between CloudFront and S3. By providing th
 
 ```hcl
 module "assets" {
-  source      = "..."
+  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/s3?ref=main"
   bucket_name = "my-app-assets"
   
   # Just pass the ARN, the module handles the IAM policy

@@ -38,7 +38,7 @@ When adding indexes, you must also define the index keys in the `attributes` var
 ### Example: Table with GSI
 ```hcl
 module "users_table" {
-  source     = "..."
+  source     = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/dynamodb?ref=main"
   table_name = "users"
   hash_key   = "userId"
 
