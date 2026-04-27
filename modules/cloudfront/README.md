@@ -1,49 +1,58 @@
-# CloudFront Elite Module 🚀
+# 🌐 AWS CloudFront Distribution Module (Elite Edition)
 
-Advanced AWS CloudFront module optimized for SPAs (React/Next), Multi-page sites, and security-first environments.
+High-performance Terraform module to manage AWS CloudFront distributions with support for **Hybrid Origins** (S3 for frontend + API Gateway for backend), automatic SSL integration, and SPA optimizations.
 
----
-
-## 🔥 Elite Features
-- **URL Auto-Rewrite:** Built-in CloudFront Function that appends `index.html` to subfolder requests (e.g., `/dashboard/` -> `/dashboard/index.html`).
-- **SPA Mode:** Native support for 403/404 error redirection to `index.html`.
-- **Security Headers:** Automatic implementation of HSTS, Frame Options, XSS Protection, and Referrer Policy.
-- **Certificate Auto-Discovery:** Find ACM certificates by domain name automatically.
-- **Modern Protocols:** Support for HTTP/2 and HTTP/3 by default.
-- **WAF Integration:** Seamlessly attach a Web ACL.
-
----
+## 🌟 Key Features
+- **Hybrid Routing:** Seamlessly route traffic between S3 (static assets) and API Gateway (dynamic API) using a single distribution.
+- **SPA Optimized:** Built-in support for Single Page Applications with automatic 404/403 redirection to `index.html`.
+- **Smart URL Rewriting:** Includes a CloudFront Function to handle subfolder `index.html` resolution (important for Next.js/Vite exports).
+- **Security Headers:** Automatic implementation of industry-standard security headers (HSTS, XSS Protection, Frame Options).
+- **Zero-Touch SSL:** Automatically looks up the ACM certificate in `us-east-1` based on the provided domain.
 
 ## 📥 Inputs
 
-| Name | Description | Type | Required | Default |
-|---|---|---|---|---|
-| `comment` | Descriptive comment for the distribution | `string` | **Yes** | - |
-| `environment` | Target environment (develop/production) | `string` | **Yes** | - |
-| `s3_bucket_domain_name` | Regional domain name of the S3 bucket | `string` | **Yes** | - |
-| `aliases` | List of custom domain names (CNAMEs) | `list(string)` | No | `[]` |
-| `certificate_domain` | Domain name for auto-discovery of ACM certificate | `string` | No | `null` |
-| `is_spa` | Enable SPA mode (redirects 403/404 to `/index.html`) | `bool` | No | `true` |
-| `enable_url_rewrite` | Enable URL rewrite function for subfolders | `bool` | No | `true` |
-| `web_acl_id` | Optional WAF Web ACL ID | `string` | No | `null` |
-| `tags` | Additional tags | `map(string)` | No | `{}` |
+| Name | Description | Type | Default | Required |
+| :--- | :--- | :--- | :--- | :---: |
+| `comment` | Description for the distribution. | `string` | - | **Yes** |
+| `environment` | develop/production. | `string` | - | **Yes** |
+| `s3_bucket_domain_name` | S3 Origin Domain. | `string` | - | **Yes** |
+| `api_gateway_domain_name` | API Origin Domain. [See Hybrid Routing](#-hybrid-routing-setup) | `string` | `null` | No |
+| `certificate_domain` | Domain for SSL lookup (us-east-1). | `string` | `null` | No |
+| `is_spa` | Enable SPA error handling. | `bool` | `true` | No |
+| `price_class` | CloudFront price class. | `string` | `PriceClass_100` | No |
+
+## 📤 Outputs
+
+| Name | Description |
+| :--- | :--- |
+| `distribution_id` | The ID of the CloudFront distribution. |
+| `domain_name` | The CloudFront default domain name (e.g., d123.cloudfront.net). |
+| `arn` | The ARN of the distribution. |
 
 ---
 
-## 📝 Usage Example (Ultra Clean)
+## 🧠 Hybrid Routing Setup
 
+This module allows you to serve a frontend and a backend from the same domain.
+
+| Traffic Path | Target Origin | Cache Policy |
+| :--- | :--- | :--- |
+| `/*` (Default) | S3 Bucket | Optimized for static assets |
+| `/api/*` (Custom) | API Gateway | Bypasses cache, forwards headers/cookies |
+
+### Example Configuration
 ```hcl
 module "cdn" {
-  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cloudfront?ref=main"
-
-  comment               = "Rempays Dashboard"
-  environment           = "production"
-  s3_bucket_domain_name = "my-bucket.s3.us-east-1.amazonaws.com"
-  aliases               = ["app.rempays.com"]
-  certificate_domain    = "rempays.com"
+  source = "..."
+  comment = "My App"
   
-  # Advanced options (enabled by default)
-  is_spa             = true
-  enable_url_rewrite = true
+  s3_bucket_domain_name   = module.s3.bucket_regional_domain_name
+  api_gateway_domain_name = replace(module.api.api_url, "https://", "") # Remove protocol
+  
+  aliases = ["myapp.com"]
+  certificate_domain = "myapp.com"
 }
 ```
+
+---
+*Created by Remsoft SAS - Infrastructure as Code Standard.*
