@@ -15,6 +15,7 @@ Manages AWS CloudFront Distributions with S3 origin support and OAC (Origin Acce
 | `price_class` | Price class (PriceClass_100, PriceClass_200, PriceClass_All) | `string` | No | `"PriceClass_100"` |
 | `aliases` | List of custom domain names (CNAMEs) | `list(string)` | No | `[]` |
 | `certificate_arn` | ARN of the ACM certificate (must be in `us-east-1`) | `string` | No | `null` |
+| `certificate_domain` | Domain name to lookup the ACM certificate automatically | `string` | No | `null` |
 | `tags` | Additional tags for the resource | `map(string)` | No | `{}` |
 
 ## 📤 Outputs
@@ -25,7 +26,7 @@ Manages AWS CloudFront Distributions with S3 origin support and OAC (Origin Acce
 | `distribution_domain_name` | CloudFront distribution domain name |
 | `distribution_arn` | CloudFront distribution ARN |
 
-## 📝 Usage Example
+## 📝 Usage Example (Auto-Discovery)
 
 ```hcl
 module "cdn" {
@@ -33,8 +34,8 @@ module "cdn" {
 
   comment               = "Rempays Landing"
   environment           = "production"
-  s3_bucket_domain_name = module.s3_bucket.bucket_regional_domain_name
+  s3_bucket_domain_name = "my-bucket.s3.us-east-1.amazonaws.com"
   aliases               = ["www.rempays.com"]
-  certificate_arn       = "arn:aws:acm:us-east-1:..."
+  certificate_domain    = "rempays.com" # Auto-lookup ARN
 }
 ```

@@ -39,6 +39,12 @@ variable "certificate_arn" {
   default     = null
 }
 
+variable "certificate_domain" {
+  description = "Domain name to lookup the ACM certificate automatically"
+  type        = string
+  default     = null
+}
+
 variable "tags" {
   description = "Additional tags for the resource"
   type        = map(string)

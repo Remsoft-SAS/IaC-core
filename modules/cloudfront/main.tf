@@ -1,6 +1,18 @@
 # modules/cloudfront/main.tf
 # Module for CloudFront CDN with S3 support and custom domains
 
+# 0. Lookup certificate if domain is provided
+data "aws_acm_certificate" "issued" {
+  count    = var.certificate_domain != null ? 1 : 0
+  domain   = var.certificate_domain
+  statuses = ["ISSUED"]
+}
+
+locals {
+  # ARN precedence: Manual ARN > Lookup by Domain > Null (default CloudFront cert)
+  final_certificate_arn = var.certificate_arn != null ? var.certificate_arn : (var.certificate_domain != null ? data.aws_acm_certificate.issued[0].arn : null)
+}
+
 resource "aws_cloudfront_origin_access_control" "this" {
   name                              = "${var.comment}-${var.environment}"
   description                       = "OAC for ${var.comment}"
@@ -52,10 +64,10 @@ resource "aws_cloudfront_distribution" "this" {
   }
 
   viewer_certificate {
-    acm_certificate_arn            = var.certificate_arn
+    acm_certificate_arn            = local.final_certificate_arn
     ssl_support_method             = "sni-only"
     minimum_protocol_version       = "TLSv1.2_2021"
-    cloudfront_default_certificate = var.certificate_arn == null
+    cloudfront_default_certificate = local.final_certificate_arn == null
   }
 
   tags = merge(
