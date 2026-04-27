@@ -1,7 +1,6 @@
 # modules/lambda/main.tf
 # Module for Lambda functions with internal IAM role and dynamic policies
 
-
 locals {
   full_function_name = "${var.function_name}-${var.environment}"
 }
@@ -117,7 +116,17 @@ resource "aws_lambda_function" "this" {
   }
 }
 
-# Log Group with configurable retention
+# ── Event Source Mapping (Triggers) ───────────────────────────────────────────
+
+resource "aws_lambda_event_source_mapping" "this" {
+  count            = var.event_source_arn != null ? 1 : 0
+  event_source_arn = var.event_source_arn
+  function_name    = aws_lambda_function.this.function_name
+  batch_size       = var.event_source_batch_size
+}
+
+# ── CloudWatch Logs ───────────────────────────────────────────────────────────
+
 resource "aws_cloudwatch_log_group" "this" {
   name              = "/aws/lambda/${local.full_function_name}"
   retention_in_days = var.log_retention_days
@@ -131,6 +140,7 @@ resource "aws_cloudwatch_log_group" "this" {
   )
 }
 
+# ── Environment Variables Smart Merge (CI/CD Support) ─────────────────────────
 
 resource "null_resource" "env_vars_merge" {
   count = length(var.environment_variables) > 0 ? 1 : 0

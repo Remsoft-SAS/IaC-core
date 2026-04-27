@@ -82,6 +82,19 @@ variable "inline_policies" {
   default = []
 }
 
+# --- Event Trigger (Smart Mapping) ---
+variable "event_source_arn" {
+  description = "ARN of the event source (SQS, DynamoDB Stream, etc.)"
+  type        = string
+  default     = null
+}
+
+variable "event_source_batch_size" {
+  description = "The largest number of records that Lambda will retrieve from your event source at the time of invoking your function"
+  type        = number
+  default     = 1
+}
+
 variable "log_retention_days" {
   description = "Log retention days in CloudWatch"
   type        = number
