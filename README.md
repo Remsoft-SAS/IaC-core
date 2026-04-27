@@ -1,12 +1,12 @@
 # 🏗️ Remsoft IaC-Core Framework
 
-Standardized Infrastructure as Code library for Remsoft SAS projects. This repository contains "Advanced Grade" Terraform modules designed for high availability, security, and developer productivity.
+Standardized Infrastructure as Code library for Remsoft SAS projects. This repository contains **Advanced Grade** Terraform modules designed for high availability, enterprise security, and developer productivity.
 
 ## 🌟 Framework Philosophy
-- **Smart Automation:** Modules detect context and autoconfigure permissions (e.g., Lambda + SQS).
-- **Security by Default:** Integrated encryption (KMS), protection (WAF/PITR), and private access (OAC).
+- **Smart Automation:** Modules detect context and autoconfigure permissions and wiring (e.g., Lambda + SQS, Cognito + Route53).
+- **Security by Default:** Integrated encryption (KMS), advanced protection (WAF/PITR), and private access control (OAC).
 - **Environment Driven:** Consistent naming and tagging following the `project-environment` pattern.
-- **Micro-Infrastructure Ready:** Designed for decoupled, event-driven architectures.
+- **Enterprise Ready:** Designed for high-scale, decoupled, and event-driven architectures.
 
 ## 📦 Available Modules
 
@@ -16,10 +16,10 @@ Standardized Infrastructure as Code library for Remsoft SAS projects. This repos
 | [**API Gateway**](./modules/api_gateway) | 💎 Advanced | Cognito/Lambda Authorizers, CORS automation, Regional endpoints. |
 | [**CloudFront**](./modules/cloudfront) | 💎 Advanced | Hybrid Origins (S3+API), SPA support, SSL automation (us-east-1). |
 | [**DynamoDB**](./modules/dynamodb) | 💎 Advanced | Dynamic GSI/LSI, PITR protection, Streams, TTL support. |
+| [**Cognito**](./modules/cognito) | 💎 Advanced | Multi-provider Social Auth, Advanced Security, Custom Schema, MFA. |
+| [**S3**](./modules/s3) | 💎 Advanced | Smart OAC Integration, Multi-tier Lifecycle (Glacier), Static Hosting. |
 | [**SQS**](./modules/sqs) | 💎 Advanced | Automated SNS Subscription, Built-in DLQ, KMS encryption. |
 | [**SNS**](./modules/sns) | 💎 Advanced | Centralized Hub, Dynamic access policies, KMS encryption. |
-| [**S3**](./modules/s3) | ✅ Standard | Bucket policies, OAC support, CORS for static sites. |
-| [**Cognito**](./modules/cognito) | ✅ Standard | User Pools, Social Auth (Google/MS), DNS/ACM integration. |
 
 ## 🚀 Getting Started
 
