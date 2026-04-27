@@ -16,6 +16,18 @@ variable "billing_mode" {
   default     = "PAY_PER_REQUEST"
 }
 
+variable "read_capacity" {
+  description = "Read capacity (only if billing_mode is PROVISIONED)"
+  type        = number
+  default     = 5
+}
+
+variable "write_capacity" {
+  description = "Write capacity (only if billing_mode is PROVISIONED)"
+  type        = number
+  default     = 5
+}
+
 variable "hash_key" {
   description = "Attribute name used as Hash Key"
   type        = string
