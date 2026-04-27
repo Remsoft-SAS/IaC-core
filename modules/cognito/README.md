@@ -1,38 +1,54 @@
-# Cognito Module (AWS Auth)
+# 🔐 Módulo Cognito: User Pool & Client
 
-Manages AWS Cognito User Pools and Clients for secure authentication.
+Módulo inteligente para gestionar la autenticación en AWS Cognito, con soporte nativo para Custom Auth Flows (OTP/Magic Link) y Login Social (Google, Microsoft).
 
----
+## 🚀 Características
+- **Custom Auth Ready:** Soporte para triggers de Lambdas para flujos personalizados.
+- **Social Login Built-in:** Creación automática de Identity Providers para Google y Microsoft OIDC.
+- **Auto-Config Client:** El cliente de Cognito detecta automáticamente qué proveedores están activos.
+- **Security First:** Protección de borrado en producción y políticas de contraseñas robustas.
 
-## 📥 Inputs
-
-| Name | Description | Type | Required | Default |
-|---|---|---|---|---|
-| `pool_name` | Base name of the Cognito User Pool | `string` | **Yes** | - |
-| `environment` | Target environment (develop/production) | `string` | **Yes** | - |
-| `username_attributes` | Attributes used for login (phone_number, email) | `list(string)` | No | `["phone_number"]` |
-| `password_minimum_length` | Minimum password length | `number` | No | `8` |
-| `temp_password_validity_days` | Days of validity for temporary passwords | `number` | No | `7` |
-| `explicit_auth_flows` | Allowed authentication flows | `list(string)` | No | `["ALLOW_CUSTOM_AUTH", "ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH"]` |
-| `tags` | Additional tags for the resource | `map(string)` | No | `{}` |
-
-## 📤 Outputs
-
-| Name | Description |
-|---|---|
-| `user_pool_id` | Cognito User Pool ID |
-| `user_pool_arn` | Cognito User Pool ARN |
-| `user_pool_client_id` | Cognito User Pool Client ID |
-| `user_pool_endpoint` | Cognito User Pool endpoint |
-
-## 📝 Usage Example
+## 📋 Uso Básico (Nativo AWS)
+Si solo quieres usar el flujo nativo de email/password de Cognito, solo necesitas esto:
 
 ```hcl
-module "auth" {
-  source = "../../modules/cognito"
-
-  pool_name   = "rempays-users"
+module "cognito" {
+  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cognito?ref=main"
+  pool_name   = "mi-app"
   environment = "production"
-  username_attributes = ["email", "phone_number"]
 }
 ```
+
+## 🛡️ Uso Elite (Custom Auth + Social)
+Para habilitar OTP por WhatsApp y Login Social:
+
+```hcl
+module "cognito" {
+  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cognito?ref=main"
+  pool_name   = "mi-app"
+  environment = "production"
+
+  # Triggers para OTP
+  lambda_create_auth_arn = "arn:..."
+  
+  # Login Social (Opcional)
+  google_client_id     = "..."
+  google_client_secret = "..."
+  
+  microsoft_client_id     = "..."
+  microsoft_client_secret = "..."
+}
+```
+
+## ⚙️ Variables principales
+| Nombre | Descripción | Tipo | Default |
+| :--- | :--- | :--- | :--- |
+| `pool_name` | Nombre base del User Pool | `string` | **Requerido** |
+| `environment` | Ambiente (develop/production) | `string` | **Requerido** |
+| `username_attributes` | Atributos de login (email, phone_number) | `list` | `["phone_number"]` |
+| `google_client_id` | ID de cliente de Google para Social Auth | `string` | `""` |
+| `microsoft_client_id` | ID de cliente de Microsoft para Social Auth | `string` | `""` |
+| `lambda_define_auth_arn` | ARN de Lambda para definir el challenge | `string` | `null` |
+
+---
+*Nota: Los proveedores sociales solo se crean si se proporciona el Client ID correspondiente.*
