@@ -1,36 +1,43 @@
-# 🏢 Remsoft Infrastructure Core (Modules Library)
+# 🏗️ Remsoft IaC-Core Framework
 
-This repository is a centralized library of atomic, reusable Terraform modules. It contains the fundamental "bricks" used to build any project infrastructure within the organization.
+Standardized Infrastructure as Code library for Remsoft SAS projects. This repository contains "Elite Grade" Terraform modules designed for high availability, security, and developer productivity.
 
-## 📂 Repository Structure
+## 🌟 Framework Philosophy
+- **Smart Automation:** Modules detect context and autoconfigure permissions (e.g., Lambda + SQS).
+- **Security by Default:** Integrated encryption (KMS), protection (WAF/PITR), and private access (OAC).
+- **Environment Driven:** Consistent naming and tagging following the `project-environment` pattern.
+- **Micro-Infrastructure Ready:** Designed for decoupled, event-driven architectures.
 
-- [🧩 **/modules**](#-available-modules) - Atomic, reusable components designed for high flexibility.
-- [📝 **How to contribute**](./CONTRIBUTING.md) - Guide for adding new modules.
+## 📦 Available Modules
+
+| Module | Status | Core Features |
+| :--- | :--- | :--- |
+| [**Lambda**](./modules/lambda) | 💎 Elite | Smart trigger detection (SQS, SNS, API, DynamoDB), Auto-IAM. |
+| [**API Gateway**](./modules/api_gateway) | 💎 Elite | Cognito/Lambda Authorizers, CORS automation, Regional endpoints. |
+| [**CloudFront**](./modules/cloudfront) | 💎 Elite | Hybrid Origins (S3+API), SPA support, SSL automation (us-east-1). |
+| [**DynamoDB**](./modules/dynamodb) | 💎 Elite | Dynamic GSI/LSI, PITR protection, Streams, TTL support. |
+| [**SQS**](./modules/sqs) | 💎 Elite | Automated SNS Subscription, Built-in DLQ, KMS encryption. |
+| [**SNS**](./modules/sns) | 💎 Elite | Centralized Hub, Dynamic access policies, KMS encryption. |
+| [**S3**](./modules/s3) | ✅ Standard | Bucket policies, OAC support, CORS for static sites. |
+| [**Cognito**](./modules/cognito) | ✅ Standard | User Pools, Social Auth (Google/MS), DNS/ACM integration. |
+
+## 🚀 Getting Started
+
+To use these modules, reference them in your Terraform code using the git source:
+
+```hcl
+module "my_lambda" {
+  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/lambda?ref=main"
+  function_name = "example"
+  environment   = "develop"
+  # ... other variables
+}
+```
+
+## 🛠️ Contribution
+- All modules must include a professional `README.md` in English.
+- Use strict typing for variables (`list(object)`) where possible.
+- Ensure backward compatibility or document breaking changes.
 
 ---
-
-## 🧩 Available Modules
-
-| Module | Purpose | Required Inputs (Core) |
-|---|---|---|
-| [λ **Lambda**](./modules/lambda/README.md) | Serverless functions | `function_name`, `handler`, `runtime` |
-| [📂 **S3**](./modules/s3/README.md) | Secure storage | `bucket_name`, `environment` |
-| [🔗 **API Gateway**](./modules/api_gateway/README.md) | REST APIs | `api_name`, `endpoints` |
-| [🔐 **Cognito**](./modules/cognito/README.md) | Authentication | `pool_name`, `environment` |
-| [📊 **DynamoDB**](./modules/dynamodb/README.md) | NoSQL Database | `table_name`, `hash_key`, `attributes` |
-| [🌐 **CloudFront**](./modules/cloudfront/README.md) | CDN / Frontend | `s3_bucket_domain_name`, `comment` |
-| [📜 **ACM**](./modules/acm/README.md) | SSL Certificates | `domain_name`, `zone_id` |
-| [📍 **Route53**](./modules/route53/README.md) | DNS Management | `domain_name`, `environment` |
-| [📨 **SQS**](./modules/sqs/README.md) | Message Queues | `queue_name`, `environment` |
-| [🔑 **Parameter Store**](./modules/parameter-store/README.md) | Configuration | `parameters`, `environment` |
-
----
-
-## 🔗 Related Repositories
-
-- [🏗️ **IaC-base**](https://github.com/Remsoft-SAS/IaC-base) - The blueprints (Stacks) that use these modules.
-- [🚀 **reusable-workflows-core**](https://github.com/Remsoft-SAS/reusable-workflows-core) - The CI/CD engine.
-
----
-
-remsoft
+*Created and maintained by Remsoft SAS Engineering Team.*
