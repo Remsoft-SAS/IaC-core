@@ -88,6 +88,24 @@ variable "enable_point_in_time_recovery" {
   default     = true
 }
 
+variable "enable_encryption" {
+  description = "Enable server-side encryption"
+  type        = bool
+  default     = true
+}
+
+variable "kms_key_arn" {
+  description = "ARN of the KMS key for encryption (optional)"
+  type        = string
+  default     = null
+}
+
+variable "replica_regions" {
+  description = "Additional regions for global replication"
+  type        = list(string)
+  default     = []
+}
+
 variable "enable_streams" {
   description = "Enable DynamoDB Streams for event-driven flows"
   type        = bool
