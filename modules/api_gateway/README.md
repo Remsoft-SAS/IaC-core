@@ -1,4 +1,4 @@
-# 🚪 AWS API Gateway REST Module (Elite Edition)
+# 🚪 AWS API Gateway REST Module (Advanced Edition)
 
 High-performance Terraform module to manage Amazon API Gateway with **Integrated Security**. It automates endpoint creation, Lambda integrations, CORS management, and Cognito/Lambda Authorizers.
 

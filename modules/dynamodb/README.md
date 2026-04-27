@@ -1,4 +1,4 @@
-# 📊 AWS DynamoDB Table Module (Elite Edition)
+# 📊 AWS DynamoDB Table Module (Advanced Edition)
 
 Professional Terraform module to manage Amazon DynamoDB tables with support for **Global Secondary Indexes (GSI)**, Time-To-Live (TTL), Point-In-Time Recovery (PITR), and Streams.
 

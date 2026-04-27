@@ -1,6 +1,6 @@
 # 🏗️ Remsoft IaC-Core Framework
 
-Standardized Infrastructure as Code library for Remsoft SAS projects. This repository contains "Elite Grade" Terraform modules designed for high availability, security, and developer productivity.
+Standardized Infrastructure as Code library for Remsoft SAS projects. This repository contains "Advanced Grade" Terraform modules designed for high availability, security, and developer productivity.
 
 ## 🌟 Framework Philosophy
 - **Smart Automation:** Modules detect context and autoconfigure permissions (e.g., Lambda + SQS).
@@ -12,12 +12,12 @@ Standardized Infrastructure as Code library for Remsoft SAS projects. This repos
 
 | Module | Status | Core Features |
 | :--- | :--- | :--- |
-| [**Lambda**](./modules/lambda) | 💎 Elite | Smart trigger detection (SQS, SNS, API, DynamoDB), Auto-IAM. |
-| [**API Gateway**](./modules/api_gateway) | 💎 Elite | Cognito/Lambda Authorizers, CORS automation, Regional endpoints. |
-| [**CloudFront**](./modules/cloudfront) | 💎 Elite | Hybrid Origins (S3+API), SPA support, SSL automation (us-east-1). |
-| [**DynamoDB**](./modules/dynamodb) | 💎 Elite | Dynamic GSI/LSI, PITR protection, Streams, TTL support. |
-| [**SQS**](./modules/sqs) | 💎 Elite | Automated SNS Subscription, Built-in DLQ, KMS encryption. |
-| [**SNS**](./modules/sns) | 💎 Elite | Centralized Hub, Dynamic access policies, KMS encryption. |
+| [**Lambda**](./modules/lambda) | 💎 Advanced | Smart trigger detection (SQS, SNS, API, DynamoDB), Auto-IAM. |
+| [**API Gateway**](./modules/api_gateway) | 💎 Advanced | Cognito/Lambda Authorizers, CORS automation, Regional endpoints. |
+| [**CloudFront**](./modules/cloudfront) | 💎 Advanced | Hybrid Origins (S3+API), SPA support, SSL automation (us-east-1). |
+| [**DynamoDB**](./modules/dynamodb) | 💎 Advanced | Dynamic GSI/LSI, PITR protection, Streams, TTL support. |
+| [**SQS**](./modules/sqs) | 💎 Advanced | Automated SNS Subscription, Built-in DLQ, KMS encryption. |
+| [**SNS**](./modules/sns) | 💎 Advanced | Centralized Hub, Dynamic access policies, KMS encryption. |
 | [**S3**](./modules/s3) | ✅ Standard | Bucket policies, OAC support, CORS for static sites. |
 | [**Cognito**](./modules/cognito) | ✅ Standard | User Pools, Social Auth (Google/MS), DNS/ACM integration. |
 

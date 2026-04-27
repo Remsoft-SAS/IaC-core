@@ -1,4 +1,4 @@
-# 🌐 AWS CloudFront Distribution Module (Elite Edition)
+# 🌐 AWS CloudFront Distribution Module (Advanced Edition)
 
 High-performance Terraform module to manage AWS CloudFront distributions with support for **Hybrid Origins** (S3 for frontend + API Gateway for backend), automatic SSL integration, and SPA optimizations.
 
