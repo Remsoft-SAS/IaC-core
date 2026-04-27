@@ -2,6 +2,14 @@
 
 High-performance Terraform module to manage AWS Cognito infrastructure with native support for Social Identity Providers, Custom Auth Flows, and Automated DNS/SSL management.
 
+## ⚠️ Prerequisites
+To enable **Smart DNS Automation**, the following resources must exist beforehand:
+1. **Route53 Hosted Zone:** A hosted zone for the `domain_name` must be active in your AWS account.
+2. **ACM Certificate:** A wildcard certificate (`*.domain_name`) must be **ISSUED** in the **us-east-1** region (CloudFront/Cognito requirement).
+3. **IAM Permissions:** The execution identity must have permissions to read Route53 and ACM resources.
+
+*Failure to meet these prerequisites will cause the `data` lookups to fail during the `terraform plan` phase.*
+
 ## 🚀 Key Features
 - **Zero-Config DNS/ACM:** Automatic discovery of Route53 Zones and Wildcard Certificates via `domain_name`.
 - **Custom Domain Orchestration:** Native management of Cognito Custom Domains and Route53 Alias records.
