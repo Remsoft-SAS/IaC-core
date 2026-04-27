@@ -45,6 +45,24 @@ variable "certificate_domain" {
   default     = null
 }
 
+variable "is_spa" {
+  description = "Enable SPA mode (redirects 403/404 to index.html)"
+  type        = bool
+  default     = true
+}
+
+variable "enable_url_rewrite" {
+  description = "Enable CloudFront Function for URL rewriting (appends index.html to subfolders)"
+  type        = bool
+  default     = true
+}
+
+variable "web_acl_id" {
+  description = "Optional WAF Web ACL ID to associate with the distribution"
+  type        = string
+  default     = null
+}
+
 variable "tags" {
   description = "Additional tags for the resource"
   type        = map(string)

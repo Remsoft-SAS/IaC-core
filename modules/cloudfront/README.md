@@ -1,6 +1,16 @@
-# CloudFront Module
+# CloudFront Elite Module 🚀
 
-Manages AWS CloudFront Distributions with S3 origin support and OAC (Origin Access Control) security.
+Advanced AWS CloudFront module optimized for SPAs (React/Next), Multi-page sites, and security-first environments.
+
+---
+
+## 🔥 Elite Features
+- **URL Auto-Rewrite:** Built-in CloudFront Function that appends `index.html` to subfolder requests (e.g., `/dashboard/` -> `/dashboard/index.html`).
+- **SPA Mode:** Native support for 403/404 error redirection to `index.html`.
+- **Security Headers:** Automatic implementation of HSTS, Frame Options, XSS Protection, and Referrer Policy.
+- **Certificate Auto-Discovery:** Find ACM certificates by domain name automatically.
+- **Modern Protocols:** Support for HTTP/2 and HTTP/3 by default.
+- **WAF Integration:** Seamlessly attach a Web ACL.
 
 ---
 
@@ -11,31 +21,29 @@ Manages AWS CloudFront Distributions with S3 origin support and OAC (Origin Acce
 | `comment` | Descriptive comment for the distribution | `string` | **Yes** | - |
 | `environment` | Target environment (develop/production) | `string` | **Yes** | - |
 | `s3_bucket_domain_name` | Regional domain name of the S3 bucket | `string` | **Yes** | - |
-| `default_root_object` | Default root object (e.g., `index.html`) | `string` | No | `"index.html"` |
-| `price_class` | Price class (PriceClass_100, PriceClass_200, PriceClass_All) | `string` | No | `"PriceClass_100"` |
 | `aliases` | List of custom domain names (CNAMEs) | `list(string)` | No | `[]` |
-| `certificate_arn` | ARN of the ACM certificate (must be in `us-east-1`) | `string` | No | `null` |
-| `certificate_domain` | Domain name to lookup the ACM certificate automatically | `string` | No | `null` |
-| `tags` | Additional tags for the resource | `map(string)` | No | `{}` |
+| `certificate_domain` | Domain name for auto-discovery of ACM certificate | `string` | No | `null` |
+| `is_spa` | Enable SPA mode (redirects 403/404 to `/index.html`) | `bool` | No | `true` |
+| `enable_url_rewrite` | Enable URL rewrite function for subfolders | `bool` | No | `true` |
+| `web_acl_id` | Optional WAF Web ACL ID | `string` | No | `null` |
+| `tags` | Additional tags | `map(string)` | No | `{}` |
 
-## 📤 Outputs
+---
 
-| Name | Description |
-|---|---|
-| `distribution_id` | CloudFront distribution ID |
-| `distribution_domain_name` | CloudFront distribution domain name |
-| `distribution_arn` | CloudFront distribution ARN |
-
-## 📝 Usage Example (Auto-Discovery)
+## 📝 Usage Example (Ultra Clean)
 
 ```hcl
 module "cdn" {
-  source = "../../modules/cloudfront"
+  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cloudfront?ref=main"
 
-  comment               = "Rempays Landing"
+  comment               = "Rempays Dashboard"
   environment           = "production"
   s3_bucket_domain_name = "my-bucket.s3.us-east-1.amazonaws.com"
-  aliases               = ["www.rempays.com"]
-  certificate_domain    = "rempays.com" # Auto-lookup ARN
+  aliases               = ["app.rempays.com"]
+  certificate_domain    = "rempays.com"
+  
+  # Advanced options (enabled by default)
+  is_spa             = true
+  enable_url_rewrite = true
 }
 ```
