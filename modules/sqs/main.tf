@@ -1,13 +1,17 @@
 # modules/sqs/main.tf
-# Generic module for SQS queues with FIFO and Dead Letter Queue support
+# Generic module for SQS queues with FIFO, Dead Letter Queue, and SNS Integration
 
 locals {
   suffix     = var.fifo_queue ? ".fifo" : ""
   queue_name = "${var.queue_name}-${var.environment}${local.suffix}"
   dlq_name   = "${var.queue_name}-dlq-${var.environment}${local.suffix}"
+  
+  # Determine if we need to create a policy
+  create_policy = var.queue_policy != null || var.sns_topic_arn != null
 }
 
-# Dead Letter Queue — created first because the main queue references it
+# ── Dead Letter Queue ──────────────────────────────────────────────────────────
+
 resource "aws_sqs_queue" "dlq" {
   count = var.enable_dlq ? 1 : 0
 
@@ -25,6 +29,8 @@ resource "aws_sqs_queue" "dlq" {
     var.tags
   )
 }
+
+# ── Main SQS Queue ─────────────────────────────────────────────────────────────
 
 resource "aws_sqs_queue" "this" {
   name                       = local.queue_name
@@ -57,10 +63,47 @@ resource "aws_sqs_queue" "this" {
   )
 }
 
-# Queue access policy (optional — for cross-account access or specific services)
+# ── SNS Integration ───────────────────────────────────────────────────────────
+
+resource "aws_sns_topic_subscription" "this" {
+  count = var.sns_topic_arn != null ? 1 : 0
+
+  topic_arn     = var.sns_topic_arn
+  protocol      = "sqs"
+  endpoint      = aws_sqs_queue.this.arn
+  filter_policy = var.sns_filter_policy
+}
+
+# ── Queue Access Policy (Auto-managed) ─────────────────────────────────────────
+
+data "aws_iam_policy_document" "combined" {
+  count = local.create_policy ? 1 : 0
+  
+  # Base policy from user if provided
+  source_policy_documents = var.queue_policy != null ? [var.queue_policy] : []
+
+  # Automatic SNS Permission
+  dynamic "statement" {
+    for_each = var.sns_topic_arn != null ? [1] : []
+    content {
+      effect    = "Allow"
+      principal = {
+        Service = "sns.amazonaws.com"
+      }
+      actions   = ["sqs:SendMessage"]
+      resources = [aws_sqs_queue.this.arn]
+      condition {
+        test     = "ArnEquals"
+        variable = "aws:SourceArn"
+        values   = [var.sns_topic_arn]
+      }
+    }
+  }
+}
+
 resource "aws_sqs_queue_policy" "this" {
-  count = var.queue_policy != null ? 1 : 0
+  count = local.create_policy ? 1 : 0
 
   queue_url = aws_sqs_queue.this.url
-  policy    = var.queue_policy
+  policy    = data.aws_iam_policy_document.combined[0].json
 }

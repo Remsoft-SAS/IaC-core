@@ -82,8 +82,21 @@ variable "dlq_message_retention_seconds" {
   default     = 1209600 # 14 days
 }
 
+# --- SNS Integration ---
+variable "sns_topic_arn" {
+  description = "ARN of an SNS topic to subscribe this queue to"
+  type        = string
+  default     = null
+}
+
+variable "sns_filter_policy" {
+  description = "Filter policy for the SNS subscription (JSON format)"
+  type        = string
+  default     = null
+}
+
 variable "queue_policy" {
-  description = "Queue access policy in JSON format (optional)"
+  description = "Additional queue access policy in JSON format (optional)"
   type        = string
   default     = null
 }
