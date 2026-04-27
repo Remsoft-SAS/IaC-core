@@ -14,10 +14,6 @@ variable "billing_mode" {
   description = "Billing mode: PROVISIONED or PAY_PER_REQUEST"
   type        = string
   default     = "PAY_PER_REQUEST"
-  validation {
-    condition     = contains(["PROVISIONED", "PAY_PER_REQUEST"], var.billing_mode)
-    error_message = "The billing_mode must be PROVISIONED or PAY_PER_REQUEST."
-  }
 }
 
 variable "hash_key" {
@@ -31,78 +27,65 @@ variable "range_key" {
   default     = null
 }
 
-variable "read_capacity" {
-  description = "Read capacity (only if billing_mode is PROVISIONED)"
-  type        = number
-  default     = 5
-}
-
-variable "write_capacity" {
-  description = "Write capacity (only if billing_mode is PROVISIONED)"
-  type        = number
-  default     = 5
-}
-
 variable "attributes" {
-  description = "List of table attributes (name and type)"
+  description = "List of table attributes (required for keys and indexes)"
   type = list(object({
     name = string
-    type = string
+    type = string # S, N, or B
   }))
 }
 
+# --- Indexing ---
+
 variable "global_secondary_indexes" {
   description = "Global Secondary Indexes configuration"
-  type        = any
-  default     = []
+  type = list(object({
+    name               = string
+    hash_key           = string
+    range_key          = optional(string)
+    projection_type    = string # ALL, KEYS_ONLY, INCLUDE
+    non_key_attributes = optional(list(string))
+    read_capacity      = optional(number)
+    write_capacity     = optional(number)
+  }))
+  default = []
 }
 
 variable "local_secondary_indexes" {
   description = "Local Secondary Indexes configuration"
-  type        = any
-  default     = []
+  type = list(object({
+    name               = string
+    range_key          = string
+    projection_type    = string # ALL, KEYS_ONLY, INCLUDE
+    non_key_attributes = optional(list(string))
+  }))
+  default = []
 }
 
+# --- Advanced Features ---
+
 variable "ttl_attribute" {
-  description = "Attribute name for TTL (optional)"
+  description = "Attribute name for Time-To-Live (optional)"
   type        = string
   default     = null
 }
 
 variable "enable_point_in_time_recovery" {
-  description = "Enable point-in-time recovery"
+  description = "Enable point-in-time recovery for disaster recovery"
   type        = bool
   default     = true
-}
-
-variable "enable_encryption" {
-  description = "Enable server-side encryption"
-  type        = bool
-  default     = true
-}
-
-variable "kms_key_arn" {
-  description = "ARN of the KMS key for encryption (optional)"
-  type        = string
-  default     = null
 }
 
 variable "enable_streams" {
-  description = "Enable DynamoDB Streams"
+  description = "Enable DynamoDB Streams for event-driven flows"
   type        = bool
   default     = false
 }
 
 variable "stream_view_type" {
-  description = "Stream view type (NEW_IMAGE, OLD_IMAGE, NEW_AND_OLD_IMAGES, KEYS_ONLY)"
+  description = "Stream content: NEW_IMAGE, OLD_IMAGE, NEW_AND_OLD_IMAGES, KEYS_ONLY"
   type        = string
   default     = "NEW_AND_OLD_IMAGES"
-}
-
-variable "replica_regions" {
-  description = "Additional regions for global replication"
-  type        = list(string)
-  default     = []
 }
 
 variable "tags" {
