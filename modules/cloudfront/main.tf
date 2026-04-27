@@ -32,11 +32,28 @@ EOF
 resource "aws_cloudfront_response_headers_policy" "security_headers" {
   name    = replace(replace(replace("${var.comment}-${var.environment}-security", " ", "-"), "(", ""), ")", "")
   security_headers_config {
-    frame_options { frame_option = "DENY"; override = true }
-    content_type_options { override = true }
-    xss_protection { mode_block = true; protection = true; override = true }
-    referrer_policy { referrer_policy = "strict-origin-when-cross-origin"; override = true }
-    strict_transport_security { access_control_max_age_sec = 31536000; include_subdomains = true; preload = true; override = true }
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+    content_type_options {
+      override = true
+    }
+    xss_protection {
+      mode_block = true
+      protection = true
+      override   = true
+    }
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains         = true
+      preload                    = true
+      override                   = true
+    }
   }
 }
 
@@ -98,7 +115,9 @@ resource "aws_cloudfront_distribution" "this" {
       forwarded_values {
         query_string = true
         headers      = ["Authorization", "Origin", "Access-Control-Request-Headers", "Access-Control-Request-Method"]
-        cookies { forward = "all" }
+        cookies {
+          forward = "all"
+        }
       }
 
       viewer_protocol_policy = "redirect-to-https"
@@ -120,7 +139,9 @@ resource "aws_cloudfront_distribution" "this" {
     forwarded_values {
       query_string = false
       headers      = ["Origin", "Access-Control-Request-Headers", "Access-Control-Request-Method"]
-      cookies { forward = "none" }
+      cookies {
+        forward = "none"
+      }
     }
 
     dynamic "function_association" {
@@ -142,7 +163,11 @@ resource "aws_cloudfront_distribution" "this" {
     }
   }
 
-  restrictions { geo_restriction { restriction_type = "none" } }
+  restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
 
   viewer_certificate {
     acm_certificate_arn            = local.final_certificate_arn
