@@ -35,10 +35,14 @@ resource "aws_cognito_user_pool" "this" {
 
   # MFA Configuration
   mfa_configuration = var.mfa_configuration
-  software_token_mfa_configuration { enabled = var.mfa_configuration != "OFF" }
+  software_token_mfa_configuration {
+    enabled = var.mfa_configuration != "OFF"
+  }
 
   # Advanced Security
-  user_pool_add_ons { advanced_security_mode = var.advanced_security_mode }
+  user_pool_add_ons {
+    advanced_security_mode = var.advanced_security_mode
+  }
 
   # Smart Trigger Integration
   lambda_config {
@@ -83,7 +87,9 @@ resource "aws_cognito_user_pool" "this" {
   deletion_protection = var.environment == "production" ? "ACTIVE" : "INACTIVE"
   tags                = merge({ Name = "${var.pool_name}-${var.environment}" }, var.tags)
 
-  lifecycle { ignore_changes = [schema] }
+  lifecycle {
+    ignore_changes = [schema]
+  }
 }
 
 # ── DNS & Domain ─────────────────────────────────────────────────────────────
@@ -165,7 +171,11 @@ resource "aws_cognito_user_pool_client" "this" {
   access_token_validity  = var.access_token_validity_hours
   id_token_validity      = var.id_token_validity_hours
   refresh_token_validity = var.refresh_token_validity_days
-  token_validity_units { access_token = "hours", id_token = "hours", refresh_token = "days" }
+  token_validity_units {
+    access_token  = "hours"
+    id_token      = "hours"
+    refresh_token = "days"
+  }
 
   prevent_user_existence_errors = "ENABLED"
 
