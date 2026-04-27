@@ -1,48 +1,67 @@
-# API Gateway Module (REST)
+# 🚪 AWS API Gateway REST Module (Elite Edition)
 
-Generic module to manage REST API Gateway with dynamic endpoints and methods.
-
----
+High-performance Terraform module to manage Amazon API Gateway with **Integrated Security**. It automates endpoint creation, Lambda integrations, CORS management, and Cognito/Lambda Authorizers.
 
 ## 📥 Inputs
 
-| Name | Description | Type | Required | Default |
-|---|---|---|---|---|
-| `api_name` | Name of the REST API | `string` | **Yes** | - |
-| `environment` | Target environment (develop/production) | `string` | **Yes** | - |
-| `endpoints` | List of endpoints to create | `list(any)` | **Yes** | - |
-| `description` | Description of the API | `string` | No | `"Managed by Terraform"` |
-| `endpoint_type` | API endpoint type (EDGE, REGIONAL) | `string` | No | `"REGIONAL"` |
-| `enable_cors` | Enable CORS for all resources | `boolean` | No | `true` |
-| `cors_allow_origin` | Allowed origins for CORS | `string` | No | `"*"` |
-| `enable_access_logs` | Enable CloudWatch Access Logs | `boolean` | No | `false` |
-| `tags` | Additional tags for the resource | `map(string)` | No | `{}` |
+| Name | Description | Type | Default | Required |
+| :--- | :--- | :--- | :--- | :---: |
+| `api_name` | Base name for the REST API. | `string` | - | **Yes** |
+| `environment` | develop/production. | `string` | - | **Yes** |
+| `endpoints` | List of paths and methods. [See Endpoint Configuration](#-endpoint-configuration-details) | `list(obj)` | - | **Yes** |
+| `cognito_user_pool_arns` | Cognito ARNs for automatic authorizer. | `list(string)` | `[]` | No |
+| `enable_cors` | Global CORS toggle. | `bool` | `true` | No |
+| `throttling_rate_limit` | Requests per second limit. | `number` | `1000` | No |
+| `enable_access_logs` | CloudWatch logging toggle. | `bool` | `true` | No |
 
 ## 📤 Outputs
 
 | Name | Description |
-|---|---|
-| `api_id` | API Gateway ID |
-| `api_arn` | API Gateway ARN |
-| `invoke_url` | Base URL to invoke the API |
-| `stage_name` | API stage name |
+| :--- | :--- |
+| `api_id` | The ID of the REST API. |
+| `api_url` | The base URL of the deployed stage. |
+| `execution_arn` | ARN for Lambda permissions. |
+| `authorizer_id` | ID of the created Cognito Authorizer (if any). |
 
-## 📝 Usage Example
+---
 
+## 🧠 Endpoint Configuration (Details)
+
+Each entry in the `endpoints` list supports advanced security settings:
+
+| Attribute | Description | Options |
+| :--- | :--- | :--- |
+| `path` | Resource path (e.g., `/users`). | String |
+| `http_method` | Verb (GET, POST, etc.). | String |
+| `authorizer_type` | Security model. | `NONE`, `COGNITO`, `CUSTOM` |
+| `authorizer_id` | Required if type is `CUSTOM`. | String (Authorizer ID) |
+| `authorization_scopes` | OAuth Scopes for Cognito. | `list(string)` |
+
+### 🔐 Example: Secure vs Public Endpoints
 ```hcl
-module "api" {
-  source = "../../modules/api_gateway"
+module "my_api" {
+  source   = "..."
+  api_name = "gateway"
+  
+  cognito_user_pool_arns = ["arn:aws:cognito-idp:..."]
 
-  api_name    = "rempays-core"
-  environment = "develop"
-  endpoints   = [
+  endpoints = [
     {
-      path                = "users"
-      http_method         = "GET"
-      authorization       = "NONE"
-      lambda_invoke_arn   = module.lambda_users.invoke_arn
-      lambda_function_name = module.lambda_users.function_name
+      path            = "/login"
+      http_method     = "POST"
+      authorizer_type = "NONE" # Public
+      lambda_function_name = "login-handler"
+    },
+    {
+      path            = "/profile"
+      http_method     = "GET"
+      authorizer_type = "COGNITO" # Protected
+      lambda_function_name = "profile-handler"
+      authorization_scopes = ["email", "openid"]
     }
   ]
 }
 ```
+
+---
+*Created by Remsoft SAS - Infrastructure as Code Standard.*

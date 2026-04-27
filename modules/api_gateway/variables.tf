@@ -1,14 +1,8 @@
 # modules/api_gateway/variables.tf
 
 variable "api_name" {
-  description = "Base name of the API"
+  description = "Name of the REST API"
   type        = string
-}
-
-variable "description" {
-  description = "API Description"
-  type        = string
-  default     = "Managed by Terraform"
 }
 
 variable "environment" {
@@ -16,31 +10,26 @@ variable "environment" {
   type        = string
 }
 
-variable "endpoint_type" {
-  description = "Endpoint type (REGIONAL, EDGE, PRIVATE)"
-  type        = string
-  default     = "REGIONAL"
-}
-
-variable "binary_media_types" {
-  description = "List of supported binary media types"
-  type        = list(string)
-  default     = ["*/*"]
-}
-
 variable "endpoints" {
-  description = "List of endpoints and their configuration"
+  description = "List of API endpoints with path, method, lambda name, and optional authorizer"
   type = list(object({
     path                 = string
     http_method          = string
-    authorization        = string
-    authorizer_id        = optional(string, null)
-    lambda_invoke_arn    = string
     lambda_function_name = string
-    api_key_required     = optional(bool, false)
+    authorizer_type      = string # NONE, COGNITO, CUSTOM
+    authorizer_id        = string # Optional: Custom Authorizer ID
+    authorization_scopes = list(string) # Optional: OAuth Scopes
   }))
 }
 
+# --- Cognito Security ---
+variable "cognito_user_pool_arns" {
+  description = "List of Cognito User Pool ARNs for the authorizer"
+  type        = list(string)
+  default     = []
+}
+
+# --- CORS ---
 variable "enable_cors" {
   description = "Enable CORS for all endpoints"
   type        = bool
@@ -48,55 +37,57 @@ variable "enable_cors" {
 }
 
 variable "cors_allow_origin" {
-  description = "Allowed origins for CORS"
+  description = "Value for Access-Control-Allow-Origin header"
   type        = string
   default     = "*"
 }
 
 variable "cors_allow_credentials" {
-  description = "Indicates if credentials are allowed in CORS"
+  description = "Value for Access-Control-Allow-Credentials header"
+  type        = bool
+  default     = false
+}
+
+# --- Logs & Monitoring ---
+variable "enable_access_logs" {
+  description = "Enable CloudWatch Access Logs"
   type        = bool
   default     = true
 }
 
-variable "enable_access_logs" {
-  description = "Enable access logs in CloudWatch"
-  type        = bool
-  default     = false
-}
-
-variable "manage_api_gateway_account" {
-  description = "If true, configures the global CloudWatch role for the account in this region. Should only be active in one service or base stack."
-  type        = bool
-  default     = false
-}
-
-variable "log_retention_days" {
-  description = "Log retention days in CloudWatch"
-  type        = number
-  default     = 7
-}
-
 variable "access_log_format" {
-  description = "Access log format in JSON"
+  description = "Custom format for access logs"
   type        = string
   default     = "{ \"requestId\":\"$context.requestId\", \"ip\":\"$context.identity.sourceIp\", \"caller\":\"$context.identity.caller\", \"user\":\"$context.identity.user\", \"requestTime\":\"$context.requestTime\", \"httpMethod\":\"$context.httpMethod\", \"resourcePath\":\"$context.resourcePath\", \"status\":\"$context.status\", \"protocol\":\"$context.protocol\", \"responseLength\":\"$context.responseLength\" }"
 }
 
-variable "throttling_burst_limit" {
-  description = "Burst request limit"
+variable "log_retention_days" {
+  description = "Log retention in days"
   type        = number
-  default     = 1000
+  default     = 7
 }
 
-variable "throttling_rate_limit" {
-  description = "Rate request limit per second"
+variable "manage_api_gateway_account" {
+  description = "Whether to manage the account-wide API Gateway CloudWatch role"
+  type        = bool
+  default     = false
+}
+
+# --- Throttling ---
+variable "throttling_burst_limit" {
+  description = "Maximum burst limit for throttling"
   type        = number
   default     = 500
 }
 
+variable "throttling_rate_limit" {
+  description = "Maximum rate limit for throttling"
+  type        = number
+  default     = 1000
+}
+
 variable "tags" {
-  description = "Additional tags for resources"
+  description = "Additional tags for the resources"
   type        = map(string)
   default     = {}
 }
