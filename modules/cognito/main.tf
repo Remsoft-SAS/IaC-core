@@ -199,7 +199,7 @@ resource "aws_cognito_user_pool_client" "this" {
 
 # Individual permissions to avoid for_each "known after apply" issues
 resource "aws_lambda_permission" "pre_signup" {
-  count         = var.lambda_pre_signup_arn != null ? 1 : 0
+  count         = var.enable_pre_signup ? 1 : 0
   statement_id  = "AllowExecutionFromCognito-PreSignUp"
   action        = "lambda:InvokeFunction"
   function_name = element(split(":", var.lambda_pre_signup_arn), length(split(":", var.lambda_pre_signup_arn)) - 1)
@@ -208,7 +208,7 @@ resource "aws_lambda_permission" "pre_signup" {
 }
 
 resource "aws_lambda_permission" "define_auth" {
-  count         = var.lambda_define_auth_arn != null ? 1 : 0
+  count         = var.enable_define_auth ? 1 : 0
   statement_id  = "AllowExecutionFromCognito-DefineAuth"
   action        = "lambda:InvokeFunction"
   function_name = element(split(":", var.lambda_define_auth_arn), length(split(":", var.lambda_define_auth_arn)) - 1)
@@ -217,7 +217,7 @@ resource "aws_lambda_permission" "define_auth" {
 }
 
 resource "aws_lambda_permission" "create_auth" {
-  count         = var.lambda_create_auth_arn != null ? 1 : 0
+  count         = var.enable_create_auth ? 1 : 0
   statement_id  = "AllowExecutionFromCognito-CreateAuth"
   action        = "lambda:InvokeFunction"
   function_name = element(split(":", var.lambda_create_auth_arn), length(split(":", var.lambda_create_auth_arn)) - 1)
@@ -226,7 +226,7 @@ resource "aws_lambda_permission" "create_auth" {
 }
 
 resource "aws_lambda_permission" "verify_auth" {
-  count         = var.lambda_verify_auth_arn != null ? 1 : 0
+  count         = var.enable_verify_auth ? 1 : 0
   statement_id  = "AllowExecutionFromCognito-VerifyAuth"
   action        = "lambda:InvokeFunction"
   function_name = element(split(":", var.lambda_verify_auth_arn), length(split(":", var.lambda_verify_auth_arn)) - 1)
@@ -235,7 +235,7 @@ resource "aws_lambda_permission" "verify_auth" {
 }
 
 resource "aws_lambda_permission" "migration" {
-  count         = var.lambda_user_migration_arn != null ? 1 : 0
+  count         = var.enable_migration ? 1 : 0
   statement_id  = "AllowExecutionFromCognito-Migration"
   action        = "lambda:InvokeFunction"
   function_name = element(split(":", var.lambda_user_migration_arn), length(split(":", var.lambda_user_migration_arn)) - 1)
