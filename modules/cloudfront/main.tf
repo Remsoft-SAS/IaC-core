@@ -14,7 +14,7 @@ locals {
 # 1. CloudFront Function: URL Rewrite (Multi-page support)
 resource "aws_cloudfront_function" "url_rewrite" {
   count   = var.enable_url_rewrite ? 1 : 0
-  name    = "${var.comment}-${var.environment}-rewrite"
+  name    = replace(replace(replace("${var.comment}-${var.environment}-rewrite", " ", "-"), "(", ""), ")", "")
   runtime = "cloudfront-js-2.0"
   comment = "Appends index.html to subfolder requests"
   publish = true
@@ -37,7 +37,7 @@ EOF
 
 # 2. Security Headers Policy
 resource "aws_cloudfront_response_headers_policy" "security_headers" {
-  name    = "${var.comment}-${var.environment}-security"
+  name    = replace(replace(replace("${var.comment}-${var.environment}-security", " ", "-"), "(", ""), ")", "")
   comment = "Basic security headers for Remsoft projects"
 
   security_headers_config {
