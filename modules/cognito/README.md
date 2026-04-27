@@ -1,81 +1,63 @@
-# 🔐 AWS Cognito User Pool & Client Module
+# 🆔 AWS Cognito Identity Module (Advanced Edition)
 
-High-performance Terraform module to manage AWS Cognito infrastructure with native support for Social Identity Providers, Custom Auth Flows, and Automated DNS/SSL management.
+The most comprehensive Terraform module to manage AWS Cognito User Pools. Designed for **Enterprise Identity Management**, it automates security, triggers, social federation, and custom schema definitions.
 
-## ⚠️ Prerequisites
-To enable **Smart DNS Automation**, the following resources must exist beforehand:
-1. **Route53 Hosted Zone:** A hosted zone for the `domain_name` must be active in your AWS account.
-2. **ACM Certificate:** A wildcard certificate (`*.domain_name`) must be **ISSUED** in the **us-east-1** region (CloudFront/Cognito requirement).
-3. **IAM Permissions:** The execution identity must have permissions to read Route53 and ACM resources.
-
-*Failure to meet these prerequisites will cause the `data` lookups to fail during the `terraform plan` phase.*
-
-## 🚀 Key Features
-- **Zero-Config DNS/ACM:** Automatic discovery of Route53 Zones and Wildcard Certificates via `domain_name`.
-- **Custom Domain Orchestration:** Native management of Cognito Custom Domains and Route53 Alias records.
-- **Smart Lambda Permissions:** Automatic `aws_lambda_permission` creation for all provided triggers.
-- **Native Social Integration:** Built-in OIDC support for Google and Microsoft.
-- **Auto-Provisioned Client:** The User Pool Client automatically enables all active identity providers.
-
-## 📋 Technical Usage
-
-### Basic (AWS Native Auth)
-```hcl
-module "cognito" {
-  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cognito?ref=main"
-  pool_name   = "my-app"
-  environment = "production"
-}
-```
-
-### Advanced (Elite Auth + Social)
-```hcl
-module "cognito" {
-  source        = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cognito?ref=main"
-  pool_name     = "my-app"
-  environment   = "production"
-  domain_name   = "example.com"
-  custom_domain = "auth.example.com"
-
-  # Social Credentials
-  google_client_id     = "GOOGLE_ID"
-  google_client_secret = "GOOGLE_SECRET"
-
-  # OTP / Custom Auth Triggers
-  lambda_create_auth_arn = "arn:aws:lambda:..."
-}
-```
+## 🌟 Key Features
+- **Dynamic Schema Management:** Add custom attributes (e.g., `company_id`, `role`) via variables without modifying the core code.
+- **Enterprise Security:** Support for Multi-Factor Authentication (MFA), advanced risk detection, and device tracking.
+- **Full Social Federation:** Built-in support for Google, Microsoft (Azure AD), and Facebook.
+- **Zero-Touch DNS:** Automatic Route53 and ACM integration for custom authentication domains (e.g., `auth.remsoft.io`).
+- **Smart Triggering:** Automatically grants invocation permissions to Lambda triggers (Pre-SignUp, Custom Auth, Migration).
+- **Production Ready:** Environment-aware deletion protection and advanced password policies.
 
 ## 📥 Inputs
 
 | Name | Description | Type | Default | Required |
 | :--- | :--- | :--- | :--- | :---: |
-| `pool_name` | Base name for the User Pool | `string` | - | **Yes** |
-| `environment` | Deployment environment (develop/production) | `string` | - | **Yes** |
-| `domain_name` | Base domain for DNS/ACM discovery | `string` | `""` | No |
-| `custom_domain` | Custom subdomain for Cognito (e.g. auth.xxx) | `string` | `""` | No |
-| `username_attributes` | Attributes used for sign-in | `list(string)` | `["phone_number"]` | No |
-| `google_client_id` | Google OAuth Client ID | `string` | `""` | No |
-| `google_client_secret` | Google OAuth Client Secret | `string` | `""` | No |
-| `microsoft_client_id` | Microsoft Azure Client ID | `string` | `""` | No |
-| `microsoft_client_secret` | Microsoft Azure Client Secret | `string` | `""` | No |
-| `lambda_pre_signup_arn` | ARN for Pre Sign-up trigger | `string` | `null` | No |
-| `lambda_define_auth_arn` | ARN for Define Auth Challenge trigger | `string` | `null` | No |
-| `lambda_create_auth_arn` | ARN for Create Auth Challenge trigger | `string` | `null` | No |
-| `lambda_verify_auth_arn` | ARN for Verify Auth Response trigger | `string` | `null` | No |
-| `callback_urls` | Allowed OAuth callback URLs | `list(string)` | `[]` | No |
-| `logout_urls` | Allowed OAuth logout URLs | `list(string)` | `[]` | No |
-| `tags` | Additional tags for resources | `map(string)` | `{}` | No |
+| `pool_name` | Base name for the User Pool. | `string` | - | **Yes** |
+| `environment` | develop/production. | `string` | - | **Yes** |
+| `custom_attributes` | Custom data schema. [See Schema Details](#-custom-schema-setup) | `list(obj)` | `[]` | No |
+| `mfa_configuration` | `OFF`, `ON`, or `OPTIONAL`. | `string` | `OFF` | No |
+| `advanced_security_mode` | `AUDIT` or `ENFORCED`. | `string` | `OFF` | No |
+| `custom_domain` | Custom domain for auth. | `string` | `""` | No |
+| `google_client_id` | Google Client ID for federation. | `string` | `""` | No |
 
 ## 📤 Outputs
 
 | Name | Description |
 | :--- | :--- |
-| `user_pool_id` | Unique ID of the Cognito User Pool |
-| `user_pool_arn` | Amazon Resource Name (ARN) of the User Pool |
-| `user_pool_endpoint` | Endpoint URL of the User Pool |
-| `user_pool_client_id` | ID of the User Pool Client |
-| `user_pool_client_secret` | Secret of the User Pool Client (Sensitive) |
+| `user_pool_id` | The ID of the User Pool. |
+| `user_pool_arn` | The ARN of the User Pool. |
+| `client_id` | The ID of the primary App Client. |
+| `auth_domain` | The full custom auth domain (if configured). |
+
+---
+
+## 🧠 Custom Schema Setup
+
+You can define custom attributes to store business-specific data.
+
+```hcl
+module "auth" {
+  source    = "..."
+  pool_name = "myapp"
+  
+  custom_attributes = [
+    {
+      name                = "company_id"
+      attribute_data_type = "String"
+      mutable             = true
+      required            = false
+    },
+    {
+      name                = "is_admin"
+      attribute_data_type = "Boolean"
+      mutable             = true
+      required            = false
+    }
+  ]
+}
+```
 
 ---
 *Created by Remsoft SAS - Infrastructure as Code Standard.*

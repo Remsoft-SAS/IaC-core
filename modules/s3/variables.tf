@@ -11,17 +11,31 @@ variable "environment" {
 }
 
 variable "force_destroy" {
-  description = "Indicates whether the bucket can be deleted even if it contains objects"
+  description = "Whether the bucket can be deleted even if it contains objects"
   type        = bool
   default     = false
 }
 
+# --- Features ---
 variable "enable_versioning" {
   description = "Enable object versioning"
   type        = bool
   default     = true
 }
 
+variable "enable_website_hosting" {
+  description = "Enable static website hosting"
+  type        = bool
+  default     = false
+}
+
+variable "index_document" {
+  description = "Main page for website hosting"
+  type        = string
+  default     = "index.html"
+}
+
+# --- Security ---
 variable "kms_key_arn" {
   description = "ARN of the KMS key for encryption (defaults to AES256 if null)"
   type        = string
@@ -34,20 +48,34 @@ variable "allowed_origins" {
   default     = []
 }
 
-variable "old_version_expiration_days" {
-  description = "Days before deleting old versions (only if versioning is enabled)"
-  type        = number
-  default     = 30
+variable "cloudfront_distribution_arn" {
+  description = "CloudFront Distribution ARN to automatically allow OAC access"
+  type        = string
+  default     = null
 }
 
+# --- Lifecycle Rules ---
 variable "transition_to_ia_days" {
-  description = "Days before moving objects to Standard IA (optional)"
+  description = "Days before moving objects to Standard IA"
   type        = number
   default     = null
 }
 
+variable "transition_to_glacier_days" {
+  description = "Days before moving objects to Glacier"
+  type        = number
+  default     = null
+}
+
+variable "old_version_expiration_days" {
+  description = "Days before deleting old versions"
+  type        = number
+  default     = 90
+}
+
+# --- Customization ---
 variable "bucket_policy" {
-  description = "Bucket policy in JSON format (optional)"
+  description = "Additional bucket policy in JSON format (optional)"
   type        = string
   default     = null
 }
