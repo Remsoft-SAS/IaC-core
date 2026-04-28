@@ -22,5 +22,5 @@ output "distribution_arn" {
 
 output "oac_id" {
   description = "Origin Access Control ID"
-  value       = aws_cloudfront_origin_access_control.this.id
+  value       = aws_cloudfront_origin_access_control.s3.id
 }
