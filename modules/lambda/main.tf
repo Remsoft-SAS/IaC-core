@@ -9,13 +9,13 @@ locals {
   type = lower(var.event_source_type != null ? var.event_source_type : "")
 
   # Pull Models (Requires Event Source Mapping)
-  is_sqs      = local.type == "sqs" || length(regexall(":sqs:", local.arn)) > 0
-  is_dynamodb = local.type == "dynamodb" || length(regexall(":dynamodb:", local.arn)) > 0
+  is_sqs      = local.type == "sqs" ? true : (local.type == "" ? length(regexall(":sqs:", local.arn)) > 0 : false)
+  is_dynamodb = local.type == "dynamodb" ? true : (local.type == "" ? length(regexall(":dynamodb:", local.arn)) > 0 : false)
 
   # Push Models (Requires Lambda Permission)
-  is_apigateway = local.type == "apigateway" || length(regexall("execute-api|:apigateway:", local.arn)) > 0
-  is_sns        = local.type == "sns" || length(regexall(":sns:", local.arn)) > 0
-  is_s3         = local.type == "s3" || length(regexall("^arn:aws:s3:::", local.arn)) > 0
+  is_apigateway = local.type == "apigateway" ? true : (local.type == "" ? length(regexall("execute-api|:apigateway:", local.arn)) > 0 : false)
+  is_sns        = local.type == "sns" ? true : (local.type == "" ? length(regexall(":sns:", local.arn)) > 0 : false)
+  is_s3         = local.type == "s3" ? true : (local.type == "" ? length(regexall("^arn:aws:s3:::", local.arn)) > 0 : false)
 }
 
 # ── IAM Execution Role ──────────────────────────────────────────────────────
