@@ -9,6 +9,7 @@ Professional Terraform module to manage AWS Lambda functions with **Intelligent 
 | `function_name` | Base name for the Lambda function. | `string` | - | **Yes** |
 | `environment` | Deployment environment (develop/production). | `string` | - | **Yes** |
 | `event_source_arn` | ARN of the trigger. [See Smart Integration Details](#-smart-event-integration-details) | `string` | `null` | No |
+| `event_source_type` | Explicit trigger type (`sqs`, `dynamodb`, `apigateway`, `sns`, `s3`). **Crucial to avoid "known after apply" errors.** | `string` | `null` | No |
 | `event_source_batch_size` | Number of records per batch (for SQS/DynamoDB). | `number` | `1` | No |
 | `handler` | Function entry point. | `string` | `index.handler` | No |
 | `runtime` | Execution runtime. | `string` | `nodejs22.x` | No |
