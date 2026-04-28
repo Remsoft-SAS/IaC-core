@@ -194,6 +194,12 @@ variable "refresh_token_validity_days" {
   default = 30
 }
 
+variable "explicit_auth_flows" {
+  description = "Explicit auth flows for the app client"
+  type        = list(string)
+  default     = ["ALLOW_CUSTOM_AUTH", "ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH"]
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

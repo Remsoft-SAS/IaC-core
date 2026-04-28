@@ -3,59 +3,65 @@
 The most comprehensive Terraform module to manage AWS Cognito User Pools. Designed for **Enterprise Identity Management**, it automates security, triggers, social federation, and custom schema definitions.
 
 ## 🌟 Key Features
-- **Dynamic Schema Management:** Add custom attributes (e.g., `company_id`, `role`) via variables without modifying the core code.
-- **Enterprise Security:** Support for Multi-Factor Authentication (MFA), advanced risk detection, and device tracking.
-- **Full Social Federation:** Built-in support for Google, Microsoft (Azure AD), and Facebook.
-- **Zero-Touch DNS:** Automatic Route53 and ACM integration for custom authentication domains (e.g., `auth.remsoft.io`).
-- **Smart Triggering:** Automatically grants invocation permissions to Lambda triggers (Pre-SignUp, Custom Auth, Migration).
-- **Production Ready:** Environment-aware deletion protection and advanced password policies.
+- **Dynamic Schema Management:** Add custom attributes via variables without modifying the core code.
+- **Elite Custom Auth (OTP):** Built-in wiring for passwordless authentication flows.
+- **Enterprise Security:** Support for Multi-Factor Authentication (MFA) and advanced security modes.
+- **Zero-Touch DNS:** Automatic Route53/ACM integration for custom domains.
+- **Flexible Auth Flows:** Fine-grained control over `explicit_auth_flows`.
 
-## 📥 Inputs
+## 📥 Full Reference: Variables
 
-| Name | Description | Type | Default | Required |
-| :--- | :--- | :--- | :--- | :---: |
-| `pool_name` | Base name for the User Pool. | `string` | - | **Yes** |
-| `environment` | develop/production. | `string` | - | **Yes** |
-| `custom_attributes` | Custom data schema. [See Schema Details](#-custom-schema-setup) | `list(obj)` | `[]` | No |
-| `mfa_configuration` | `OFF`, `ON`, or `OPTIONAL`. | `string` | `OFF` | No |
-| `advanced_security_mode` | `AUDIT` or `ENFORCED`. | `string` | `OFF` | No |
-| `custom_domain` | Custom domain for auth. | `string` | `""` | No |
-| `google_client_id` | Google Client ID for federation. | `string` | `""` | No |
+### 🏗️ Base Configuration
+| Name | Description | Type | Default |
+| :--- | :--- | :--- | :--- |
+| `pool_name` | Base name for the User Pool | `string` | - |
+| `environment` | develop / production | `string` | - |
+| `username_attributes` | Attributes used for login (`email`, `phone_number`) | `list(string)` | `["email"]` |
+| `explicit_auth_flows` | Allowed auth flows (`ALLOW_CUSTOM_AUTH`, `ALLOW_USER_SRP_AUTH`, etc.) | `list(string)` | `["ALLOW_CUSTOM_AUTH", "ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH"]` |
 
-## 📤 Outputs
+### 🧠 Custom Triggers (Lambda)
+| Name | Description | Type | Default |
+| :--- | :--- | :--- | :--- |
+| `lambda_pre_signup_arn` | ARN for Pre Sign-up trigger | `string` | `null` |
+| `lambda_define_auth_arn` | ARN for Define Auth Challenge | `string` | `null` |
+| `lambda_create_auth_arn` | ARN for Create Auth Challenge | `string` | `null` |
+| `lambda_verify_auth_arn` | ARN for Verify Auth Challenge | `string` | `null` |
+| `enable_pre_signup` | Enable Pre Sign-up flag | `bool` | `false` |
+| `enable_define_auth` | Enable Define Auth flag | `bool` | `false` |
+| `enable_create_auth` | Enable Create Auth flag | `bool` | `false` |
+| `enable_verify_auth` | Enable Verify Auth flag | `bool` | `false` |
 
-| Name | Description |
-| :--- | :--- |
-| `user_pool_id` | The ID of the User Pool. |
-| `user_pool_arn` | The ARN of the User Pool. |
-| `client_id` | The ID of the primary App Client. |
-| `auth_domain` | The full custom auth domain (if configured). |
+### 🔒 Security & Password Policy
+| Name | Description | Type | Default |
+| :--- | :--- | :--- | :--- |
+| `password_minimum_length` | Minimum password length | `number` | `8` |
+| `mfa_configuration` | MFA mode (`OFF`, `ON`, `OPTIONAL`) | `string` | `OFF` |
+| `advanced_security_mode` | `OFF`, `AUDIT`, `ENFORCED` | `string` | `OFF` |
 
----
+### 🌐 DNS & Social Identity
+| Name | Description | Type | Default |
+| :--- | :--- | :--- | :--- |
+| `domain_name` | Root domain for Route53 | `string` | `""` |
+| `custom_domain` | Full custom domain for auth | `string` | `""` |
+| `google_client_id` | Google OAuth Client ID | `string` | `""` |
+| `google_client_secret` | Google OAuth Client Secret | `string` | `""` |
+| `callback_urls` | Allowed callback URLs | `list(string)` | `[]` |
 
-## 🧠 Custom Schema Setup
+## 🧠 Elite OTP Configuration (Passwordless)
 
-You can define custom attributes to store business-specific data.
+To implement a passwordless flow, use:
 
 ```hcl
-module "auth" {
-  source    = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cognito?ref=main"
-  pool_name = "myapp"
+module "cognito" {
+  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/cognito?ref=main"
+  pool_name   = "my-app"
+  environment = "develop"
+
+  # Enforce custom auth only
+  explicit_auth_flows = ["ALLOW_CUSTOM_AUTH", "ALLOW_REFRESH_TOKEN_AUTH"]
   
-  custom_attributes = [
-    {
-      name                = "company_id"
-      attribute_data_type = "String"
-      mutable             = true
-      required            = false
-    },
-    {
-      name                = "is_admin"
-      attribute_data_type = "Boolean"
-      mutable             = true
-      required            = false
-    }
-  ]
+  enable_define_auth = true
+  lambda_define_auth_arn = module.lambdas["define"].arn
 }
 ```
 

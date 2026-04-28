@@ -166,7 +166,7 @@ resource "aws_cognito_user_pool_client" "this" {
   name         = "${var.pool_name}-client-${var.environment}"
   user_pool_id = aws_cognito_user_pool.this.id
 
-  explicit_auth_flows = ["ALLOW_CUSTOM_AUTH", "ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH"]
+  explicit_auth_flows = var.explicit_auth_flows
   
   access_token_validity  = var.access_token_validity_hours
   id_token_validity      = var.id_token_validity_hours
@@ -204,7 +204,6 @@ resource "aws_lambda_permission" "pre_signup" {
   action        = "lambda:InvokeFunction"
   function_name = element(split(":", var.lambda_pre_signup_arn), length(split(":", var.lambda_pre_signup_arn)) - 1)
   principal     = "cognito-idp.amazonaws.com"
-  source_arn    = aws_cognito_user_pool.this.arn
 }
 
 resource "aws_lambda_permission" "define_auth" {
@@ -213,7 +212,6 @@ resource "aws_lambda_permission" "define_auth" {
   action        = "lambda:InvokeFunction"
   function_name = element(split(":", var.lambda_define_auth_arn), length(split(":", var.lambda_define_auth_arn)) - 1)
   principal     = "cognito-idp.amazonaws.com"
-  source_arn    = aws_cognito_user_pool.this.arn
 }
 
 resource "aws_lambda_permission" "create_auth" {
@@ -222,7 +220,6 @@ resource "aws_lambda_permission" "create_auth" {
   action        = "lambda:InvokeFunction"
   function_name = element(split(":", var.lambda_create_auth_arn), length(split(":", var.lambda_create_auth_arn)) - 1)
   principal     = "cognito-idp.amazonaws.com"
-  source_arn    = aws_cognito_user_pool.this.arn
 }
 
 resource "aws_lambda_permission" "verify_auth" {
@@ -231,7 +228,6 @@ resource "aws_lambda_permission" "verify_auth" {
   action        = "lambda:InvokeFunction"
   function_name = element(split(":", var.lambda_verify_auth_arn), length(split(":", var.lambda_verify_auth_arn)) - 1)
   principal     = "cognito-idp.amazonaws.com"
-  source_arn    = aws_cognito_user_pool.this.arn
 }
 
 resource "aws_lambda_permission" "migration" {
