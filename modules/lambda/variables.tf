@@ -89,6 +89,12 @@ variable "event_source_arn" {
   default     = null
 }
 
+variable "event_source_type" {
+  description = "Type of event source (sqs, dynamodb, apigateway, sns, s3). Used to avoid 'known after apply' errors in count."
+  type        = string
+  default     = null
+}
+
 variable "event_source_batch_size" {
   description = "The largest number of records that Lambda will retrieve from your event source at the time of invoking your function"
   type        = number

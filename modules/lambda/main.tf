@@ -5,16 +5,17 @@ locals {
   full_function_name = "${var.function_name}-${var.environment}"
   
   # --- Smart Detection Logic ---
-  arn = var.event_source_arn != null ? var.event_source_arn : ""
-  
+  arn  = var.event_source_arn != null ? var.event_source_arn : ""
+  type = lower(var.event_source_type != null ? var.event_source_type : "")
+
   # Pull Models (Requires Event Source Mapping)
-  is_sqs      = length(regexall(":sqs:", local.arn)) > 0
-  is_dynamodb = length(regexall(":dynamodb:", local.arn)) > 0
-  
+  is_sqs      = local.type == "sqs" || length(regexall(":sqs:", local.arn)) > 0
+  is_dynamodb = local.type == "dynamodb" || length(regexall(":dynamodb:", local.arn)) > 0
+
   # Push Models (Requires Lambda Permission)
-  is_apigateway = length(regexall("execute-api|:apigateway:", local.arn)) > 0
-  is_sns        = length(regexall(":sns:", local.arn)) > 0
-  is_s3         = length(regexall("^arn:aws:s3:::", local.arn)) > 0
+  is_apigateway = local.type == "apigateway" || length(regexall("execute-api|:apigateway:", local.arn)) > 0
+  is_sns        = local.type == "sns" || length(regexall(":sns:", local.arn)) > 0
+  is_s3         = local.type == "s3" || length(regexall("^arn:aws:s3:::", local.arn)) > 0
 }
 
 # ── IAM Execution Role ──────────────────────────────────────────────────────
