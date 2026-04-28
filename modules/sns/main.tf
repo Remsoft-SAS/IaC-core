@@ -33,11 +33,14 @@ resource "aws_sns_topic_policy" "this" {
       {
         Sid    = "AllowPublishers"
         Effect = "Allow"
-        Principal = {
-          # Detect if it's an ARN or a Service Principal
-          AWS     = [for p in var.allowed_publishers : p if length(split(":", p)) > 1]
-          Service = [for p in var.allowed_publishers : p if length(split(":", p)) == 1]
-        }
+        Principal = merge(
+          length([for p in var.allowed_publishers : p if length(split(":", p)) > 1 || can(regex("^[0-9]{12}$", p))]) > 0 ? {
+            AWS = [for p in var.allowed_publishers : p if length(split(":", p)) > 1 || can(regex("^[0-9]{12}$", p))]
+          } : {},
+          length([for p in var.allowed_publishers : p if length(split(":", p)) == 1 && !can(regex("^[0-9]{12}$", p))]) > 0 ? {
+            Service = [for p in var.allowed_publishers : p if length(split(":", p)) == 1 && !can(regex("^[0-9]{12}$", p))]
+          } : {}
+        )
         Action   = "sns:Publish"
         Resource = aws_sns_topic.this.arn
       }
