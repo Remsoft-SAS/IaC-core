@@ -87,8 +87,9 @@ data "aws_iam_policy_document" "combined" {
     for_each = var.sns_topic_arn != null ? [1] : []
     content {
       effect    = "Allow"
-      principal = {
-        Service = "sns.amazonaws.com"
+      principals {
+        type        = "Service"
+        identifiers = ["sns.amazonaws.com"]
       }
       actions   = ["sqs:SendMessage"]
       resources = [aws_sqs_queue.this.arn]

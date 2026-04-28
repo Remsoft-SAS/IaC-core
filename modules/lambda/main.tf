@@ -132,7 +132,7 @@ resource "aws_lambda_function" "this" {
   tags = merge({ Name = local.full_function_name }, var.tags)
 
   lifecycle {
-    ignore_changes = [filename, s3_key, s3_object_version, last_modified, source_code_hash, environment]
+    ignore_changes = [filename, s3_key, s3_object_version, source_code_hash, environment]
   }
 }
 
