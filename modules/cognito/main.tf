@@ -177,7 +177,7 @@ resource "aws_cognito_user_pool_client" "this" {
     refresh_token = "days"
   }
 
-  prevent_user_existence_errors = "ENABLED"
+  prevent_user_existence_errors = var.prevent_user_existence_errors ? "ENABLED" : "LEGACY"
 
   supported_identity_providers = concat(
     ["COGNITO"],

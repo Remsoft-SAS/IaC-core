@@ -200,6 +200,12 @@ variable "explicit_auth_flows" {
   default     = ["ALLOW_CUSTOM_AUTH", "ALLOW_REFRESH_TOKEN_AUTH", "ALLOW_USER_SRP_AUTH"]
 }
 
+variable "prevent_user_existence_errors" {
+  description = "If true, Cognito returns a generic error for non-existent users. If false, it returns UserNotFoundException."
+  type        = bool
+  default     = true # Por defecto mantenemos el estándar de seguridad de AWS
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
