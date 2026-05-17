@@ -29,6 +29,22 @@ Terraform module to manage Amazon API Gateway with **Integrated Security**. It a
 | `websocket_routes` | List of WebSocket routes. See [WebSocket Routes](#websocket-route-configuration). | `list(obj)` | `[]` | No |
 | `websocket_api_name` | Name override for the WebSocket API. | `string` | `"<api_name>-websocket-<env>"` | No |
 | `websocket_route_selection_expression` | Expression used to select the route. | `string` | `"$request.body.action"` | No |
+| `websocket_access_log_format` | Log format for WebSocket access logs. | `string` | JSON preset | No |
+
+### Custom Domain — REST API
+
+| Name | Description | Type | Default | Required |
+| :--- | :--- | :--- | :--- | :---: |
+| `custom_domain_name` | Custom domain for the REST API (e.g. `api.example.com`). Leave empty to skip. | `string` | `""` | No |
+| `custom_domain_certificate_arn` | ACM certificate ARN for the REST API domain (same region). | `string` | `""` | No |
+| `custom_domain_base_path` | Base path mapping. Empty string maps to the root. | `string` | `""` | No |
+
+### Custom Domain — WebSocket API
+
+| Name | Description | Type | Default | Required |
+| :--- | :--- | :--- | :--- | :---: |
+| `websocket_custom_domain_name` | Custom domain for the WebSocket API (e.g. `ws.example.com`). Leave empty to skip. | `string` | `""` | No |
+| `websocket_custom_domain_certificate_arn` | ACM certificate ARN for the WebSocket domain (same region). | `string` | `""` | No |
 
 ## Outputs
 
@@ -49,6 +65,15 @@ Terraform module to manage Amazon API Gateway with **Integrated Security**. It a
 | `websocket_api_id` | WebSocket API ID (`null` if disabled). |
 | `websocket_api_endpoint` | WebSocket endpoint `wss://...` (`null` if disabled). |
 | `websocket_execution_arn` | Execution ARN for granting Lambda invoke permissions (`null` if disabled). |
+
+### Custom Domains
+
+| Name | Description |
+| :--- | :--- |
+| `custom_domain_regional_domain_name` | CNAME/ALIAS target for the REST API custom domain DNS record (`null` if not configured). |
+| `custom_domain_hosted_zone_id` | Hosted zone ID for REST API Route53 alias record (`null` if not configured). |
+| `websocket_custom_domain_target` | CNAME/ALIAS target for the WebSocket custom domain DNS record (`null` if not configured). |
+| `websocket_custom_domain_hosted_zone_id` | Hosted zone ID for WebSocket Route53 alias record (`null` if not configured). |
 
 ---
 
@@ -151,6 +176,35 @@ output "ws_url" {
   # wss://<id>.execute-api.<region>.amazonaws.com/<environment>
 }
 ```
+
+### Custom Domains
+
+```hcl
+module "my_api" {
+  source   = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/api_gateway?ref=main"
+  api_name = "gateway"
+  endpoints = [ ... ]
+
+  # REST API custom domain
+  custom_domain_name            = "api.example.com"
+  custom_domain_certificate_arn = "arn:aws:acm:us-east-1:123456789:certificate/abc-123"
+  custom_domain_base_path       = ""  # root path
+
+  # WebSocket custom domain
+  enable_websocket                        = true
+  websocket_custom_domain_name            = "ws.example.com"
+  websocket_custom_domain_certificate_arn = "arn:aws:acm:us-east-1:123456789:certificate/xyz-456"
+  websocket_routes = [ ... ]
+}
+
+# Use these outputs to create DNS records (e.g. in a Route53 module)
+output "rest_dns_target"      { value = module.my_api.custom_domain_regional_domain_name }
+output "rest_hosted_zone_id"  { value = module.my_api.custom_domain_hosted_zone_id }
+output "ws_dns_target"        { value = module.my_api.websocket_custom_domain_target }
+output "ws_hosted_zone_id"    { value = module.my_api.websocket_custom_domain_hosted_zone_id }
+```
+
+> **Note:** The ACM certificate must be in the **same AWS region** as the API. Custom domains require a DNS record (CNAME or Route53 alias) pointing to the output domain names above.
 
 ---
 *Created by Remsoft SAS - Infrastructure as Code Standard.*

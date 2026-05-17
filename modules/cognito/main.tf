@@ -35,7 +35,7 @@ resource "aws_cognito_user_pool" "this" {
 
   # MFA Configuration
   mfa_configuration = var.mfa_configuration
-  
+
   dynamic "software_token_mfa_configuration" {
     for_each = var.mfa_configuration != "OFF" ? [1] : []
     content {
@@ -66,7 +66,7 @@ resource "aws_cognito_user_pool" "this" {
       attribute_data_type = schema.value.attribute_data_type
       mutable             = schema.value.mutable
       required            = schema.value.required
-      
+
       dynamic "string_attribute_constraints" {
         for_each = schema.value.attribute_data_type == "String" && schema.value.string_attribute_constraints != null ? [1] : []
         content {
@@ -138,9 +138,9 @@ resource "aws_cognito_identity_provider" "microsoft" {
   provider_name = "Microsoft"
   provider_type = "OIDC"
   provider_details = {
-    client_id      = var.microsoft_client_id
-    client_secret  = var.microsoft_client_secret
-    oidc_issuer    = "https://login.microsoftonline.com/${var.microsoft_tenant_id}/v2.0"
+    client_id        = var.microsoft_client_id
+    client_secret    = var.microsoft_client_secret
+    oidc_issuer      = "https://login.microsoftonline.com/${var.microsoft_tenant_id}/v2.0"
     authorize_scopes = "openid email profile"
   }
   attribute_mapping = { email = "email", username = "sub", name = "name" }
@@ -167,7 +167,7 @@ resource "aws_cognito_user_pool_client" "this" {
   user_pool_id = aws_cognito_user_pool.this.id
 
   explicit_auth_flows = var.explicit_auth_flows
-  
+
   access_token_validity  = var.access_token_validity_hours
   id_token_validity      = var.id_token_validity_hours
   refresh_token_validity = var.refresh_token_validity_days
@@ -186,8 +186,8 @@ resource "aws_cognito_user_pool_client" "this" {
     var.facebook_client_id != "" ? ["Facebook"] : []
   )
 
-  callback_urls = length(var.callback_urls) > 0 ? var.callback_urls : null
-  logout_urls   = length(var.logout_urls) > 0 ? var.logout_urls : null
+  callback_urls                        = length(var.callback_urls) > 0 ? var.callback_urls : null
+  logout_urls                          = length(var.logout_urls) > 0 ? var.logout_urls : null
   allowed_oauth_flows_user_pool_client = length(var.callback_urls) > 0
   allowed_oauth_flows                  = ["code"]
   allowed_oauth_scopes                 = ["openid", "email", "phone", "profile"]

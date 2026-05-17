@@ -54,6 +54,7 @@ variable "cloudfront_distribution_arn" {
   default     = null
 }
 
+
 # --- Lifecycle Rules ---
 variable "transition_to_ia_days" {
   description = "Days before moving objects to Standard IA"

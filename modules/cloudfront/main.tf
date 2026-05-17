@@ -30,7 +30,7 @@ EOF
 
 # 2. Security Headers Policy
 resource "aws_cloudfront_response_headers_policy" "security_headers" {
-  name    = replace(replace(replace("${var.comment}-${var.environment}-security", " ", "-"), "(", ""), ")", "")
+  name = replace(replace(replace("${var.comment}-${var.environment}-security", " ", "-"), "(", ""), ")", "")
   security_headers_config {
     frame_options {
       frame_option = "DENY"
@@ -78,7 +78,7 @@ resource "aws_cloudfront_distribution" "this" {
   aliases = var.aliases
 
   # --- Origins ---
-  
+
   # Static Origin (S3)
   origin {
     domain_name              = var.s3_bucket_domain_name

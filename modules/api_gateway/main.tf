@@ -25,10 +25,10 @@ resource "aws_api_gateway_authorizer" "cognito" {
 
 locals {
   # Logic to calculate unique resource paths
-  all_paths          = [for ep in var.endpoints : ep.path]
-  unique_paths       = distinct(local.all_paths)
-  sorted_paths       = sort(local.unique_paths)
-  non_root_paths     = [for p in local.sorted_paths : p if p != "" && p != "/"]
+  all_paths      = [for ep in var.endpoints : ep.path]
+  unique_paths   = distinct(local.all_paths)
+  sorted_paths   = sort(local.unique_paths)
+  non_root_paths = [for p in local.sorted_paths : p if p != "" && p != "/"]
 }
 
 resource "aws_api_gateway_resource" "endpoints" {
@@ -42,14 +42,14 @@ resource "aws_api_gateway_resource" "endpoints" {
 resource "aws_api_gateway_method" "endpoints" {
   for_each = { for ep in var.endpoints : "${ep.path}#${ep.http_method}" => ep }
 
-  rest_api_id   = aws_api_gateway_rest_api.this.id
-  resource_id   = (each.value.path == "" || each.value.path == "/") ? aws_api_gateway_rest_api.this.root_resource_id : aws_api_gateway_resource.endpoints[each.value.path].id
-  http_method   = each.value.http_method
-  
+  rest_api_id = aws_api_gateway_rest_api.this.id
+  resource_id = (each.value.path == "" || each.value.path == "/") ? aws_api_gateway_rest_api.this.root_resource_id : aws_api_gateway_resource.endpoints[each.value.path].id
+  http_method = each.value.http_method
+
   # Smart Authorization Logic
   authorization = each.value.authorizer_type
   authorizer_id = each.value.authorizer_type == "COGNITO" ? aws_api_gateway_authorizer.cognito[0].id : (each.value.authorizer_type == "CUSTOM" ? each.value.authorizer_id : null)
-  
+
   authorization_scopes = each.value.authorizer_type == "COGNITO" ? each.value.authorization_scopes : null
 }
 
@@ -59,7 +59,7 @@ resource "aws_api_gateway_integration" "lambda" {
   rest_api_id = aws_api_gateway_rest_api.this.id
   resource_id = (each.value.path == "" || each.value.path == "/") ? aws_api_gateway_rest_api.this.root_resource_id : aws_api_gateway_resource.endpoints[each.value.path].id
   http_method = aws_api_gateway_method.endpoints[each.key].http_method
-  
+
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = "arn:aws:apigateway:${data.aws_region.current.name}:lambda:path/2015-03-31/functions/arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${each.value.lambda_function_name}-${var.environment}/invocations"
@@ -68,7 +68,7 @@ resource "aws_api_gateway_integration" "lambda" {
 # ── CORS Implementation ───────────────────────────────────────────────────────
 
 locals {
-  all_unique_paths = distinct([for ep in var.endpoints : ep.path])
+  all_unique_paths  = distinct([for ep in var.endpoints : ep.path])
   supported_headers = "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent"
 }
 
@@ -211,13 +211,14 @@ resource "aws_apigatewayv2_route" "websocket" {
 resource "aws_apigatewayv2_stage" "websocket" {
   count       = var.enable_websocket ? 1 : 0
   api_id      = aws_apigatewayv2_api.websocket[0].id
-  name        = var.environment
+  stage_name  = var.environment
   auto_deploy = true
 
   dynamic "access_log_settings" {
     for_each = var.enable_access_logs ? [1] : []
     content {
       destination_arn = aws_cloudwatch_log_group.websocket[0].arn
+      format          = var.websocket_access_log_format
     }
   }
 
@@ -228,4 +229,48 @@ resource "aws_cloudwatch_log_group" "websocket" {
   count             = var.enable_websocket && var.enable_access_logs ? 1 : 0
   name              = "/aws/apigateway/websocket/${var.api_name}-${var.environment}"
   retention_in_days = var.log_retention_days
+}
+
+# ── Custom Domain — REST API ───────────────────────────────────────────────────
+
+resource "aws_api_gateway_domain_name" "this" {
+  count                    = var.custom_domain_name != "" ? 1 : 0
+  domain_name              = var.custom_domain_name
+  regional_certificate_arn = var.custom_domain_certificate_arn
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+
+  tags = merge({ Name = var.custom_domain_name }, var.tags)
+}
+
+resource "aws_api_gateway_base_path_mapping" "this" {
+  count       = var.custom_domain_name != "" ? 1 : 0
+  api_id      = aws_api_gateway_rest_api.this.id
+  stage_name  = aws_api_gateway_stage.this.stage_name
+  domain_name = aws_api_gateway_domain_name.this[0].domain_name
+  base_path   = var.custom_domain_base_path != "" ? var.custom_domain_base_path : null
+}
+
+# ── Custom Domain — WebSocket API ─────────────────────────────────────────────
+
+resource "aws_apigatewayv2_domain_name" "websocket" {
+  count       = var.enable_websocket && var.websocket_custom_domain_name != "" ? 1 : 0
+  domain_name = var.websocket_custom_domain_name
+
+  domain_name_configuration {
+    certificate_arn = var.websocket_custom_domain_certificate_arn
+    endpoint_type   = "REGIONAL"
+    security_policy = "TLS_1_2"
+  }
+
+  tags = merge({ Name = var.websocket_custom_domain_name }, var.tags)
+}
+
+resource "aws_apigatewayv2_api_mapping" "websocket" {
+  count       = var.enable_websocket && var.websocket_custom_domain_name != "" ? 1 : 0
+  api_id      = aws_apigatewayv2_api.websocket[0].id
+  domain_name = aws_apigatewayv2_domain_name.websocket[0].id
+  stage       = aws_apigatewayv2_stage.websocket[0].id
 }

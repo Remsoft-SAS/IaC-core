@@ -20,10 +20,10 @@ variable "username_attributes" {
 variable "custom_attributes" {
   description = "List of custom attributes to add to the schema"
   type = list(object({
-    name                     = string
-    attribute_data_type      = string # String, Number, DateTime, Boolean
-    mutable                  = bool
-    required                 = bool
+    name                = string
+    attribute_data_type = string # String, Number, DateTime, Boolean
+    mutable             = bool
+    required            = bool
     string_attribute_constraints = optional(object({
       min_length = number
       max_length = number

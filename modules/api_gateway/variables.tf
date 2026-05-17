@@ -16,8 +16,8 @@ variable "endpoints" {
     path                 = string
     http_method          = string
     lambda_function_name = string
-    authorizer_type      = string # NONE, COGNITO, CUSTOM
-    authorizer_id        = string # Optional: Custom Authorizer ID
+    authorizer_type      = string       # NONE, COGNITO, CUSTOM
+    authorizer_id        = string       # Optional: Custom Authorizer ID
     authorization_scopes = list(string) # Optional: OAuth Scopes
   }))
 }
@@ -119,4 +119,42 @@ variable "websocket_routes" {
     authorization_type   = string # NONE, AWS_IAM, CUSTOM, JWT
   }))
   default = []
+}
+
+variable "websocket_access_log_format" {
+  description = "Log format for WebSocket API access logs"
+  type        = string
+  default     = "{ \"requestId\":\"$context.requestId\", \"connectionId\":\"$context.connectionId\", \"routeKey\":\"$context.routeKey\", \"status\":\"$context.status\", \"integrationError\":\"$context.integrationErrorMessage\" }"
+}
+
+# --- Custom Domain — REST API ---
+variable "custom_domain_name" {
+  description = "Custom domain name for the REST API (e.g. api.example.com). Leave empty to skip."
+  type        = string
+  default     = ""
+}
+
+variable "custom_domain_certificate_arn" {
+  description = "ACM certificate ARN for the REST API custom domain (must be in the same region)"
+  type        = string
+  default     = ""
+}
+
+variable "custom_domain_base_path" {
+  description = "Base path mapping for the REST API custom domain. Empty string maps to the root path."
+  type        = string
+  default     = ""
+}
+
+# --- Custom Domain — WebSocket API ---
+variable "websocket_custom_domain_name" {
+  description = "Custom domain name for the WebSocket API (e.g. ws.example.com). Leave empty to skip."
+  type        = string
+  default     = ""
+}
+
+variable "websocket_custom_domain_certificate_arn" {
+  description = "ACM certificate ARN for the WebSocket custom domain (must be in the same region)"
+  type        = string
+  default     = ""
 }

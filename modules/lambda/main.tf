@@ -3,7 +3,7 @@
 
 locals {
   full_function_name = "${var.function_name}-${var.environment}"
-  
+
   # --- Smart Detection Logic ---
   arn  = var.event_source_arn != null ? var.event_source_arn : ""
   type = lower(var.event_source_type != null ? var.event_source_type : "")

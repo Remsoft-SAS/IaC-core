@@ -5,7 +5,7 @@ locals {
   suffix     = var.fifo_queue ? ".fifo" : ""
   queue_name = "${var.queue_name}-${var.environment}${local.suffix}"
   dlq_name   = "${var.queue_name}-dlq-${var.environment}${local.suffix}"
-  
+
   # Determine if we need to create a policy
   create_policy = var.queue_policy != null || var.sns_topic_arn != null
 }
@@ -78,7 +78,7 @@ resource "aws_sns_topic_subscription" "this" {
 
 data "aws_iam_policy_document" "combined" {
   count = local.create_policy ? 1 : 0
-  
+
   # Base policy from user if provided
   source_policy_documents = var.queue_policy != null ? [var.queue_policy] : []
 
@@ -86,7 +86,7 @@ data "aws_iam_policy_document" "combined" {
   dynamic "statement" {
     for_each = var.sns_topic_arn != null ? [1] : []
     content {
-      effect    = "Allow"
+      effect = "Allow"
       principals {
         type        = "Service"
         identifiers = ["sns.amazonaws.com"]
