@@ -211,7 +211,7 @@ resource "aws_apigatewayv2_route" "websocket" {
 resource "aws_apigatewayv2_stage" "websocket" {
   count       = var.enable_websocket ? 1 : 0
   api_id      = aws_apigatewayv2_api.websocket[0].id
-  stage_name  = var.environment
+  name        = var.environment
   auto_deploy = true
 
   dynamic "access_log_settings" {
