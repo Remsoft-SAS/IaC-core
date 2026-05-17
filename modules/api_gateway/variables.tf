@@ -91,3 +91,32 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# --- WebSocket (API Gateway V2) ---
+variable "enable_websocket" {
+  description = "Enable a WebSocket API (API Gateway V2) alongside the REST API"
+  type        = bool
+  default     = false
+}
+
+variable "websocket_api_name" {
+  description = "Name override for the WebSocket API. Defaults to '<api_name>-websocket-<environment>'"
+  type        = string
+  default     = ""
+}
+
+variable "websocket_route_selection_expression" {
+  description = "Route selection expression for the WebSocket API"
+  type        = string
+  default     = "$request.body.action"
+}
+
+variable "websocket_routes" {
+  description = "List of WebSocket routes. Use standard keys ($connect, $disconnect, $default) or custom action names."
+  type = list(object({
+    route_key            = string # e.g. "$connect", "$disconnect", "$default", "sendMessage"
+    lambda_function_name = string
+    authorization_type   = string # NONE, AWS_IAM, CUSTOM, JWT
+  }))
+  default = []
+}
