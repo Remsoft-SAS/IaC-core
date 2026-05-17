@@ -121,8 +121,14 @@ variable "websocket_routes" {
   default = []
 }
 
+variable "websocket_enable_access_logs" {
+  description = "Enable CloudWatch access logs for the WebSocket API. Requires a CloudWatch Logs role ARN configured at account level (aws_api_gateway_account). Defaults to false to avoid deployment errors on accounts without it."
+  type        = bool
+  default     = false
+}
+
 variable "websocket_access_log_format" {
-  description = "Log format for WebSocket API access logs"
+  description = "Log format for WebSocket API access logs (used only if websocket_enable_access_logs = true)"
   type        = string
   default     = "{ \"requestId\":\"$context.requestId\", \"connectionId\":\"$context.connectionId\", \"routeKey\":\"$context.routeKey\", \"status\":\"$context.status\", \"integrationError\":\"$context.integrationErrorMessage\" }"
 }

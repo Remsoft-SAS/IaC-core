@@ -16,13 +16,13 @@ output "execution_arn" {
 }
 
 output "invoke_url" {
-  description = "Base URL to invoke the API"
-  value       = aws_api_gateway_stage.this.invoke_url
+  description = "Base URL to invoke the API (null if no endpoints are defined)"
+  value       = length(var.endpoints) > 0 ? aws_api_gateway_stage.this[0].invoke_url : null
 }
 
 output "stage_name" {
-  description = "API stage name"
-  value       = aws_api_gateway_stage.this.stage_name
+  description = "API stage name (null if no endpoints are defined)"
+  value       = length(var.endpoints) > 0 ? aws_api_gateway_stage.this[0].stage_name : null
 }
 
 # ── WebSocket Outputs ─────────────────────────────────────────────────────────

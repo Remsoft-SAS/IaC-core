@@ -126,7 +126,12 @@ resource "aws_api_gateway_integration_response" "options" {
 
 # ── Deployment & Stages ───────────────────────────────────────────────────────
 
+locals {
+  has_endpoints = length(var.endpoints) > 0
+}
+
 resource "aws_api_gateway_deployment" "this" {
+  count       = local.has_endpoints ? 1 : 0
   rest_api_id = aws_api_gateway_rest_api.this.id
   depends_on  = [aws_api_gateway_integration.lambda, aws_api_gateway_integration.options]
 
@@ -135,7 +140,7 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_resource.endpoints,
       aws_api_gateway_method.endpoints,
       aws_api_gateway_integration.lambda,
-      var.endpoints # Force redeploy on endpoint changes
+      var.endpoints
     ]))
   }
 
@@ -145,7 +150,8 @@ resource "aws_api_gateway_deployment" "this" {
 }
 
 resource "aws_api_gateway_stage" "this" {
-  deployment_id = aws_api_gateway_deployment.this.id
+  count         = local.has_endpoints ? 1 : 0
+  deployment_id = aws_api_gateway_deployment.this[0].id
   rest_api_id   = aws_api_gateway_rest_api.this.id
   stage_name    = var.environment
 
@@ -159,8 +165,9 @@ resource "aws_api_gateway_stage" "this" {
 }
 
 resource "aws_api_gateway_method_settings" "all" {
+  count       = local.has_endpoints ? 1 : 0
   rest_api_id = aws_api_gateway_rest_api.this.id
-  stage_name  = aws_api_gateway_stage.this.stage_name
+  stage_name  = aws_api_gateway_stage.this[0].stage_name
   method_path = "*/*"
   settings {
     throttling_burst_limit = var.throttling_burst_limit
@@ -169,7 +176,7 @@ resource "aws_api_gateway_method_settings" "all" {
 }
 
 resource "aws_cloudwatch_log_group" "api_gateway" {
-  count             = var.enable_access_logs ? 1 : 0
+  count             = local.has_endpoints && var.enable_access_logs ? 1 : 0
   name              = "/aws/apigateway/${var.api_name}-${var.environment}"
   retention_in_days = var.log_retention_days
 }
@@ -215,7 +222,7 @@ resource "aws_apigatewayv2_stage" "websocket" {
   auto_deploy = true
 
   dynamic "access_log_settings" {
-    for_each = var.enable_access_logs ? [1] : []
+    for_each = var.websocket_enable_access_logs ? [1] : []
     content {
       destination_arn = aws_cloudwatch_log_group.websocket[0].arn
       format          = var.websocket_access_log_format
@@ -226,7 +233,7 @@ resource "aws_apigatewayv2_stage" "websocket" {
 }
 
 resource "aws_cloudwatch_log_group" "websocket" {
-  count             = var.enable_websocket && var.enable_access_logs ? 1 : 0
+  count             = var.enable_websocket && var.websocket_enable_access_logs ? 1 : 0
   name              = "/aws/apigateway/websocket/${var.api_name}-${var.environment}"
   retention_in_days = var.log_retention_days
 }
@@ -248,7 +255,7 @@ resource "aws_api_gateway_domain_name" "this" {
 resource "aws_api_gateway_base_path_mapping" "this" {
   count       = var.custom_domain_name != "" ? 1 : 0
   api_id      = aws_api_gateway_rest_api.this.id
-  stage_name  = aws_api_gateway_stage.this.stage_name
+  stage_name  = aws_api_gateway_stage.this[0].stage_name
   domain_name = aws_api_gateway_domain_name.this[0].domain_name
   base_path   = var.custom_domain_base_path != "" ? var.custom_domain_base_path : null
 }
