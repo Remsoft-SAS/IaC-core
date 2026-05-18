@@ -15,6 +15,7 @@ Terraform module to manage Amazon API Gateway with **Integrated Security**. It a
 | `enable_cors` | Global CORS toggle. | `bool` | `true` | No |
 | `cors_allow_origin` | Value for `Access-Control-Allow-Origin`. | `string` | `"*"` | No |
 | `cors_allow_credentials` | Value for `Access-Control-Allow-Credentials`. | `bool` | `false` | No |
+| `enable_proxy_routes` | Auto-create `{proxy+}` child resource per endpoint path (e.g. `/users/{proxy+}`) with `ANY` method + CORS. | `bool` | `false` | No |
 | `throttling_burst_limit` | Maximum burst limit for throttling. | `number` | `500` | No |
 | `throttling_rate_limit` | Requests per second limit. | `number` | `1000` | No |
 | `enable_access_logs` | CloudWatch access logs toggle. | `bool` | `true` | No |
@@ -135,6 +136,41 @@ module "my_api" {
   ]
 }
 ```
+
+### Proxy Routes `{proxy+}`
+
+When `enable_proxy_routes = true`, for each non-root endpoint path the module automatically creates a `{proxy+}` child resource so that sub-routes are forwarded to the same Lambda. CORS `OPTIONS` is also created if `enable_cors = true`.
+
+```hcl
+module "my_api" {
+  source   = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/api_gateway?ref=main"
+  api_name = "gateway"
+
+  enable_proxy_routes = true  # creates /users/{proxy+}, /orders/{proxy+}, etc.
+
+  endpoints = [
+    {
+      path                 = "/users"
+      http_method          = "GET"
+      lambda_function_name = "users-handler"
+      authorizer_type      = "COGNITO"
+      authorizer_id        = null
+      authorization_scopes = ["openid"]
+    },
+    {
+      path                 = "/orders"
+      http_method          = "GET"
+      lambda_function_name = "orders-handler"
+      authorizer_type      = "COGNITO"
+      authorizer_id        = null
+      authorization_scopes = ["openid"]
+    }
+  ]
+}
+# Result: GET /users, ANY /users/{proxy+}, GET /orders, ANY /orders/{proxy+}
+```
+
+> The `{proxy+}` method inherits the authorizer and Lambda of the **first** endpoint defined for that path.
 
 ### WebSocket API
 

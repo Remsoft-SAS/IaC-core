@@ -92,6 +92,13 @@ variable "tags" {
   default     = {}
 }
 
+# --- Proxy Routes ---
+variable "enable_proxy_routes" {
+  description = "Automatically create a {proxy+} child resource for each endpoint path, enabling sub-route handling (e.g. /users/{proxy+}). Default false for backwards compatibility."
+  type        = bool
+  default     = false
+}
+
 # --- WebSocket (API Gateway V2) ---
 variable "enable_websocket" {
   description = "Enable a WebSocket API (API Gateway V2) alongside the REST API"
