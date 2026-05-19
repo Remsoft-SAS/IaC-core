@@ -18,7 +18,7 @@ Terraform module to manage Amazon API Gateway with **Integrated Security**. It a
 | `enable_proxy_routes` | Auto-create `{proxy+}` child resource per endpoint path (e.g. `/users/{proxy+}`) with `ANY` method + CORS. | `bool` | `false` | No |
 | `throttling_burst_limit` | Maximum burst limit for throttling. | `number` | `500` | No |
 | `throttling_rate_limit` | Requests per second limit. | `number` | `1000` | No |
-| `enable_access_logs` | CloudWatch access logs toggle. | `bool` | `true` | No |
+| `enable_access_logs` | CloudWatch access logs toggle. Requires CloudWatch Logs role ARN configured at account level. | `bool` | `false` | No |
 | `log_retention_days` | Log retention in days. | `number` | `7` | No |
 | `tags` | Additional resource tags. | `map(string)` | `{}` | No |
 
