@@ -390,6 +390,10 @@ resource "aws_route53_record" "custom_domain" {
     zone_id                = aws_api_gateway_domain_name.this[0].regional_zone_id
     evaluate_target_health = false
   }
+
+  lifecycle {
+    create_before_destroy = false
+  }
 }
 
 resource "aws_route53_record" "websocket_custom_domain" {
@@ -402,5 +406,9 @@ resource "aws_route53_record" "websocket_custom_domain" {
     name                   = aws_apigatewayv2_domain_name.websocket[0].domain_name_configuration[0].target_domain_name
     zone_id                = aws_apigatewayv2_domain_name.websocket[0].domain_name_configuration[0].hosted_zone_id
     evaluate_target_health = false
+  }
+
+  lifecycle {
+    create_before_destroy = false
   }
 }
