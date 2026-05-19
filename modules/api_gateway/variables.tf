@@ -50,9 +50,9 @@ variable "cors_allow_credentials" {
 
 # --- Logs & Monitoring ---
 variable "enable_access_logs" {
-  description = "Enable CloudWatch Access Logs"
+  description = "Enable CloudWatch Access Logs. Requires a CloudWatch Logs role ARN configured at account level (aws_api_gateway_account). Defaults to false to avoid deployment errors on accounts without it."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "access_log_format" {
