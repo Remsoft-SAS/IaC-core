@@ -55,9 +55,10 @@ Terraform module to manage Amazon API Gateway with **Integrated Security**. It a
 | :--- | :--- |
 | `api_id` | The ID of the REST API. |
 | `api_arn` | The ARN of the REST API. |
-| `invoke_url` | Base URL to invoke the REST API. |
+| `invoke_url` | Base URL to invoke the REST API (`null` if no endpoints). |
+| `stage_invoke_url` | Direct invoke URL of the deployed stage (`null` if no endpoints). |
 | `execution_arn` | Execution ARN for Lambda permissions. |
-| `stage_name` | Deployed stage name. |
+| `stage_name` | Deployed stage name (`null` if no endpoints). |
 
 ### WebSocket API
 
@@ -71,9 +72,10 @@ Terraform module to manage Amazon API Gateway with **Integrated Security**. It a
 
 | Name | Description |
 | :--- | :--- |
-| `custom_domain_regional_domain_name` | CNAME/ALIAS target for the REST API custom domain DNS record (`null` if not configured). |
+| `custom_domain_target` | Regional domain name for REST API custom domain — Route53 alias target (`null` if not configured). |
+| `custom_domain_regional_domain_name` | Same as `custom_domain_target` (legacy name). |
 | `custom_domain_hosted_zone_id` | Hosted zone ID for REST API Route53 alias record (`null` if not configured). |
-| `websocket_custom_domain_target` | CNAME/ALIAS target for the WebSocket custom domain DNS record (`null` if not configured). |
+| `websocket_custom_domain_target` | CNAME/ALIAS target for WebSocket custom domain DNS record (`null` if not configured). |
 | `websocket_custom_domain_hosted_zone_id` | Hosted zone ID for WebSocket Route53 alias record (`null` if not configured). |
 
 ---
