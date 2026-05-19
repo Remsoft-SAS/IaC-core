@@ -101,6 +101,18 @@ variable "event_source_batch_size" {
   default     = 1
 }
 
+variable "event_source_starting_position" {
+  description = "Starting position for DynamoDB/Kinesis streams (LATEST or TRIM_HORIZON). Only applies when event_source_type is dynamodb."
+  type        = string
+  default     = null
+}
+
+variable "event_source_filter_pattern" {
+  description = "JSON filter pattern for the event source mapping (e.g. '{\"eventName\":[\"INSERT\"]}'). Leave null to disable filtering."
+  type        = string
+  default     = null
+}
+
 variable "log_retention_days" {
   description = "Log retention days in CloudWatch"
   type        = number

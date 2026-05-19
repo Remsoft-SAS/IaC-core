@@ -376,3 +376,31 @@ resource "aws_apigatewayv2_api_mapping" "websocket" {
   domain_name = aws_apigatewayv2_domain_name.websocket[0].id
   stage       = aws_apigatewayv2_stage.websocket[0].id
 }
+
+# ── Route53 Records ───────────────────────────────────────────────────────────
+
+resource "aws_route53_record" "custom_domain" {
+  count   = var.custom_domain_name != "" && var.route53_zone_id != "" ? 1 : 0
+  zone_id = var.route53_zone_id
+  name    = var.custom_domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_api_gateway_domain_name.this[0].regional_domain_name
+    zone_id                = aws_api_gateway_domain_name.this[0].regional_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "websocket_custom_domain" {
+  count   = var.enable_websocket && var.websocket_custom_domain_name != "" && var.route53_zone_id != "" ? 1 : 0
+  zone_id = var.route53_zone_id
+  name    = var.websocket_custom_domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_apigatewayv2_domain_name.websocket[0].domain_name_configuration[0].target_domain_name
+    zone_id                = aws_apigatewayv2_domain_name.websocket[0].domain_name_configuration[0].hosted_zone_id
+    evaluate_target_health = false
+  }
+}

@@ -141,10 +141,20 @@ resource "aws_lambda_function" "this" {
 
 # 1. Mapping (For Pull-based: SQS, DynamoDB)
 resource "aws_lambda_event_source_mapping" "this" {
-  count            = (local.is_sqs || local.is_dynamodb) ? 1 : 0
-  event_source_arn = var.event_source_arn
-  function_name    = aws_lambda_function.this.function_name
-  batch_size       = var.event_source_batch_size
+  count             = (local.is_sqs || local.is_dynamodb) ? 1 : 0
+  event_source_arn  = var.event_source_arn
+  function_name     = aws_lambda_function.this.function_name
+  batch_size        = var.event_source_batch_size
+  starting_position = local.is_dynamodb ? var.event_source_starting_position : null
+
+  dynamic "filter_criteria" {
+    for_each = var.event_source_filter_pattern != null ? [1] : []
+    content {
+      filter {
+        pattern = var.event_source_filter_pattern
+      }
+    }
+  }
 }
 
 # 2. Permission (For Push-based: API GW, SNS, S3)

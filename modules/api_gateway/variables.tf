@@ -171,3 +171,9 @@ variable "websocket_custom_domain_certificate_arn" {
   type        = string
   default     = ""
 }
+
+variable "route53_zone_id" {
+  description = "Route53 hosted zone ID. When provided, the module creates alias A records for the REST and/or WebSocket custom domains automatically."
+  type        = string
+  default     = ""
+}
