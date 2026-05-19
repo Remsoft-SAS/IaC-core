@@ -54,6 +54,16 @@ output "custom_domain_hosted_zone_id" {
   value       = var.custom_domain_name != "" ? aws_api_gateway_domain_name.this[0].regional_zone_id : null
 }
 
+output "custom_domain_target" {
+  description = "Regional domain name of the REST API custom domain (used as Route53 alias name — null if not configured)"
+  value       = var.custom_domain_name != "" ? aws_api_gateway_domain_name.this[0].regional_domain_name : null
+}
+
+output "stage_invoke_url" {
+  description = "Direct invoke URL of the deployed stage (null if no endpoints are defined)"
+  value       = length(var.endpoints) > 0 ? aws_api_gateway_stage.this[0].invoke_url : null
+}
+
 output "websocket_custom_domain_target" {
   description = "Target domain name to use as DNS CNAME/ALIAS for the WebSocket custom domain (null if not configured)"
   value       = var.enable_websocket && var.websocket_custom_domain_name != "" ? aws_apigatewayv2_domain_name.websocket[0].domain_name_configuration[0].target_domain_name : null
