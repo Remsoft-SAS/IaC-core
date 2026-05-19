@@ -48,9 +48,9 @@ resource "aws_api_gateway_method" "endpoints" {
 
   # Smart Authorization Logic
   authorization = each.value.authorizer_type
-  authorizer_id = each.value.authorizer_type == "COGNITO" ? aws_api_gateway_authorizer.cognito[0].id : (each.value.authorizer_type == "CUSTOM" ? each.value.authorizer_id : null)
+  authorizer_id = each.value.authorizer_type == "COGNITO_USER_POOLS" ? aws_api_gateway_authorizer.cognito[0].id : (each.value.authorizer_type == "CUSTOM" ? each.value.authorizer_id : null)
 
-  authorization_scopes = each.value.authorizer_type == "COGNITO" ? each.value.authorization_scopes : null
+  authorization_scopes = each.value.authorizer_type == "COGNITO_USER_POOLS" ? each.value.authorization_scopes : null
 }
 
 resource "aws_api_gateway_integration" "lambda" {
@@ -151,8 +151,8 @@ resource "aws_api_gateway_method" "proxy" {
   resource_id          = aws_api_gateway_resource.proxy[each.key].id
   http_method          = "ANY"
   authorization        = each.value.authorizer_type
-  authorizer_id        = each.value.authorizer_type == "COGNITO" ? aws_api_gateway_authorizer.cognito[0].id : (each.value.authorizer_type == "CUSTOM" ? each.value.authorizer_id : null)
-  authorization_scopes = each.value.authorizer_type == "COGNITO" ? each.value.authorization_scopes : null
+  authorizer_id        = each.value.authorizer_type == "COGNITO_USER_POOLS" ? aws_api_gateway_authorizer.cognito[0].id : (each.value.authorizer_type == "CUSTOM" ? each.value.authorizer_id : null)
+  authorization_scopes = each.value.authorizer_type == "COGNITO_USER_POOLS" ? each.value.authorization_scopes : null
 }
 
 resource "aws_api_gateway_integration" "proxy" {
