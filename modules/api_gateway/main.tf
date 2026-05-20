@@ -236,7 +236,11 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_method.endpoints,
       aws_api_gateway_integration.lambda,
       aws_api_gateway_integration.proxy,
-      var.endpoints
+      aws_api_gateway_integration_response.options,
+      aws_api_gateway_integration_response.proxy_options,
+      var.endpoints,
+      local.supported_headers,
+      var.cors_allow_origin
     ]))
   }
 
