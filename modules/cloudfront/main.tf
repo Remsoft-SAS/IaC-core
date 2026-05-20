@@ -178,3 +178,17 @@ resource "aws_cloudfront_distribution" "this" {
 
   tags = merge({ Environment = var.environment }, var.tags)
 }
+
+# 5. Route53 — A alias record for the first custom domain (optional)
+resource "aws_route53_record" "this" {
+  count   = var.route53_zone_id != null && length(var.aliases) > 0 ? 1 : 0
+  zone_id = var.route53_zone_id
+  name    = var.aliases[0]
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.this.domain_name
+    zone_id                = aws_cloudfront_distribution.this.hosted_zone_id
+    evaluate_target_health = false
+  }
+}

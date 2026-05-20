@@ -79,6 +79,12 @@ variable "web_acl_id" {
   default     = null
 }
 
+variable "route53_zone_id" {
+  description = "Route53 Hosted Zone ID to create an A alias record for the first alias domain. Leave null to skip."
+  type        = string
+  default     = null
+}
+
 variable "tags" {
   description = "Additional tags for the resource"
   type        = map(string)

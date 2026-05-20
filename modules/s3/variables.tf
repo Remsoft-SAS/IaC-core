@@ -49,9 +49,15 @@ variable "allowed_origins" {
 }
 
 variable "cloudfront_distribution_arn" {
-  description = "CloudFront Distribution ARN to automatically allow OAC access"
+  description = "CloudFront Distribution ARN for the OAC bucket policy"
   type        = string
   default     = null
+}
+
+variable "enable_oac_policy" {
+  description = "Set to true when cloudfront_distribution_arn is a computed value (e.g. from another module). Decouples the resource count from the computed ARN to avoid Terraform plan errors."
+  type        = bool
+  default     = false
 }
 
 
