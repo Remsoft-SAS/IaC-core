@@ -48,6 +48,12 @@ variable "cors_allow_credentials" {
   default     = false
 }
 
+variable "cors_allow_headers" {
+  description = "Additional headers to include in Access-Control-Allow-Headers (comma-separated)"
+  type        = string
+  default     = ""
+}
+
 # --- Logs & Monitoring ---
 variable "enable_access_logs" {
   description = "Enable CloudWatch Access Logs. Requires a CloudWatch Logs role ARN configured at account level (aws_api_gateway_account). Defaults to false to avoid deployment errors on accounts without it."

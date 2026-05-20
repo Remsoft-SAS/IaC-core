@@ -69,7 +69,8 @@ resource "aws_api_gateway_integration" "lambda" {
 
 locals {
   all_unique_paths  = distinct([for ep in var.endpoints : ep.path])
-  supported_headers = "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent"
+  _base_headers     = "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent"
+  supported_headers = var.cors_allow_headers != "" ? "${local._base_headers},${var.cors_allow_headers}" : local._base_headers
 }
 
 resource "aws_api_gateway_method" "options" {
