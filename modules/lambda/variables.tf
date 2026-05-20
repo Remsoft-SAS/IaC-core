@@ -113,6 +113,12 @@ variable "event_source_filter_pattern" {
   default     = null
 }
 
+variable "layer_arns" {
+  description = "List of Lambda Layer ARNs to attach to the function (max 5)"
+  type        = list(string)
+  default     = []
+}
+
 variable "log_retention_days" {
   description = "Log retention days in CloudWatch"
   type        = number

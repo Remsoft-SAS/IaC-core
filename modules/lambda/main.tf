@@ -123,6 +123,8 @@ resource "aws_lambda_function" "this" {
     }
   }
 
+  layers = length(var.layer_arns) > 0 ? var.layer_arns : null
+
   dynamic "environment" {
     for_each = length(var.environment_variables) > 0 ? [1] : []
     content {
