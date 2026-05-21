@@ -338,6 +338,18 @@ resource "aws_cloudwatch_log_group" "websocket" {
   retention_in_days = var.log_retention_days
 }
 
+# ── Lambda Permissions — WebSocket ───────────────────────────────────────────
+
+resource "aws_lambda_permission" "websocket" {
+  for_each = var.enable_websocket ? { for r in var.websocket_routes : r.route_key => r } : {}
+
+  statement_id  = "AllowAPIGatewayWebSocketInvoke-${replace(each.key, "$", "")}"
+  action        = "lambda:InvokeFunction"
+  function_name = "${each.value.lambda_function_name}-${var.environment}"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.websocket[0].execution_arn}/*/*"
+}
+
 # ── Custom Domain — REST API ───────────────────────────────────────────────────
 
 resource "aws_api_gateway_domain_name" "this" {
