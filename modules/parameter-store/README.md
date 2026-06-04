@@ -48,7 +48,7 @@ Supports two lifecycle modes:
 
 ```hcl
 module "parameters" {
-  source = "../../modules/parameter-store"
+  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/parameter-store?ref=main"
 
   environment = "develop"
   parameters = [
@@ -65,7 +65,7 @@ module "parameters" {
 
 ```hcl
 module "parameters" {
-  source = "../../modules/parameter-store"
+  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/parameter-store?ref=main"
 
   environment = "production"
   parameters = [
@@ -85,7 +85,7 @@ module "parameters" {
 
 ```hcl
 module "parameters" {
-  source = "../../modules/parameter-store"
+  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/parameter-store?ref=main"
 
   environment = "production"
   parameters = [
@@ -109,7 +109,7 @@ module "parameters" {
 
 ```hcl
 module "parameters" {
-  source = "../../modules/parameter-store"
+  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/parameter-store?ref=main"
 
   environment = "production"
   parameters = [
@@ -127,13 +127,13 @@ module "parameters" {
 
 ```hcl
 module "parameters" {
-  source      = "../../modules/parameter-store"
+  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/parameter-store?ref=main"
   environment = var.environment
   parameters  = [...]
 }
 
 module "my_lambda" {
-  source        = "../../modules/lambda"
+  source        = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/lambda?ref=main"
   function_name = "my-function"
   environment   = var.environment
 
