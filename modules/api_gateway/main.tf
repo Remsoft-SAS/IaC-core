@@ -8,6 +8,8 @@ resource "aws_api_gateway_rest_api" "this" {
     types = ["REGIONAL"]
   }
 
+  binary_media_types = length(var.binary_media_types) > 0 ? var.binary_media_types : null
+
   tags = merge({ Name = "${var.api_name}-${var.environment}" }, var.tags)
 }
 
@@ -429,3 +431,4 @@ resource "aws_route53_record" "websocket_custom_domain" {
     create_before_destroy = false
   }
 }
+
