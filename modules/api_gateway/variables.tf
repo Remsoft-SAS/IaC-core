@@ -183,3 +183,10 @@ variable "route53_zone_id" {
   type        = string
   default     = ""
 }
+
+# --- Binary Media Types ---
+variable "binary_media_types" {
+  description = "List of binary media types for API Gateway to base64-encode (e.g. multipart/form-data for file uploads)"
+  type        = list(string)
+  default     = []
+}
