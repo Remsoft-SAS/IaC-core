@@ -242,7 +242,8 @@ resource "aws_api_gateway_deployment" "this" {
       aws_api_gateway_integration_response.proxy_options,
       var.endpoints,
       local.supported_headers,
-      var.cors_allow_origin
+      var.cors_allow_origin,
+      aws_api_gateway_rest_api.this.binary_media_types,
     ]))
   }
 
@@ -431,4 +432,5 @@ resource "aws_route53_record" "websocket_custom_domain" {
     create_before_destroy = false
   }
 }
+
 
