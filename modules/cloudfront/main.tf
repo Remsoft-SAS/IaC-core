@@ -1,5 +1,11 @@
 # modules/cloudfront/main.tf
 
+# OAC was renamed from "this" to "s3" — keeps existing deployments from destroying/recreating it.
+moved {
+  from = aws_cloudfront_origin_access_control.this
+  to   = aws_cloudfront_origin_access_control.s3
+}
+
 # 0. Lookup certificate if domain is provided (Must be in us-east-1)
 data "aws_acm_certificate" "issued" {
   count    = var.certificate_domain != null ? 1 : 0
