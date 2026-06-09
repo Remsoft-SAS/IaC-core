@@ -132,9 +132,10 @@ data "aws_iam_policy_document" "combined" {
 }
 
 resource "aws_s3_bucket_policy" "this" {
-  # enable_oac_policy MUST be first in the OR chain so Terraform can short-circuit
-  # with a known `true` before evaluating the computed cloudfront_distribution_arn.
-  count  = (var.enable_oac_policy || var.bucket_policy != null || var.cloudfront_distribution_arn != null) ? 1 : 0
+  # cloudfront_distribution_arn is intentionally excluded from count: it is a computed
+  # value (unknown at plan time) and would break Terraform plan. Use enable_oac_policy=true
+  # whenever cloudfront_distribution_arn comes from another module in the same stack.
+  count  = (var.enable_oac_policy || var.bucket_policy != null) ? 1 : 0
   bucket = aws_s3_bucket.this.id
   policy = data.aws_iam_policy_document.combined.json
 }
