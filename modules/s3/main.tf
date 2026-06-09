@@ -132,9 +132,9 @@ data "aws_iam_policy_document" "combined" {
 }
 
 resource "aws_s3_bucket_policy" "this" {
-  # enable_oac_policy decouples the count from the computed ARN value,
-  # preventing "Invalid count argument" errors in Terraform plan.
-  count  = (var.bucket_policy != null || var.cloudfront_distribution_arn != null || var.enable_oac_policy) ? 1 : 0
+  # enable_oac_policy MUST be first in the OR chain so Terraform can short-circuit
+  # with a known `true` before evaluating the computed cloudfront_distribution_arn.
+  count  = (var.enable_oac_policy || var.bucket_policy != null || var.cloudfront_distribution_arn != null) ? 1 : 0
   bucket = aws_s3_bucket.this.id
   policy = data.aws_iam_policy_document.combined.json
 }
