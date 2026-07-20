@@ -184,6 +184,13 @@ variable "route53_zone_id" {
   default     = ""
 }
 
+# --- Lambda Permissions ---
+variable "create_lambda_permissions" {
+  description = "Auto-create Lambda invoke permissions for REST API endpoints. When true, the module creates one aws_lambda_permission per unique lambda_function_name. Set to false (default) when managing permissions externally."
+  type        = bool
+  default     = false
+}
+
 # --- Binary Media Types ---
 variable "binary_media_types" {
   description = "List of binary media types for API Gateway to base64-encode (e.g. multipart/form-data for file uploads)"

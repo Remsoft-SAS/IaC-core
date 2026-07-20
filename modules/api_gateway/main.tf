@@ -341,6 +341,22 @@ resource "aws_cloudwatch_log_group" "websocket" {
   retention_in_days = var.log_retention_days
 }
 
+# ── Lambda Permissions — REST API (opcional) ────────────────────────────────
+
+locals {
+  rest_lambda_names = var.create_lambda_permissions ? distinct([for ep in var.endpoints : ep.lambda_function_name]) : []
+}
+
+resource "aws_lambda_permission" "rest" {
+  for_each = toset(local.rest_lambda_names)
+
+  statement_id  = "AllowAPIGatewayInvoke-${each.key}"
+  action        = "lambda:InvokeFunction"
+  function_name = "${each.key}-${var.environment}"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.this.execution_arn}/*/*"
+}
+
 # ── Lambda Permissions — WebSocket ───────────────────────────────────────────
 
 resource "aws_lambda_permission" "websocket" {
