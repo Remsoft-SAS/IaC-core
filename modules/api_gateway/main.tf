@@ -229,7 +229,11 @@ locals {
 resource "aws_api_gateway_deployment" "this" {
   count       = local.has_endpoints ? 1 : 0
   rest_api_id = aws_api_gateway_rest_api.this.id
-  depends_on  = [aws_api_gateway_integration.lambda]
+  depends_on = [
+    aws_api_gateway_resource.endpoints,
+    aws_api_gateway_method.endpoints,
+    aws_api_gateway_integration.lambda,
+  ]
 
   triggers = {
     redeployment = sha1(jsonencode([
@@ -247,6 +251,9 @@ resource "aws_api_gateway_deployment" "this" {
     ]))
   }
 
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_api_gateway_stage" "this" {
