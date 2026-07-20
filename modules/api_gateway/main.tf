@@ -229,7 +229,12 @@ locals {
 resource "aws_api_gateway_deployment" "this" {
   count       = local.has_endpoints ? 1 : 0
   rest_api_id = aws_api_gateway_rest_api.this.id
-  depends_on  = [aws_api_gateway_integration.lambda, aws_api_gateway_integration.options]
+  depends_on = concat(
+    [aws_api_gateway_integration.lambda],
+    var.enable_proxy_routes ? [aws_api_gateway_integration.proxy] : [],
+    var.enable_cors ? [aws_api_gateway_integration.options] : [],
+    var.enable_cors && var.enable_proxy_routes ? [aws_api_gateway_integration.proxy_options] : [],
+  )
 
   triggers = {
     redeployment = sha1(jsonencode([
