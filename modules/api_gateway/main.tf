@@ -112,7 +112,8 @@ resource "aws_api_gateway_method_response" "options" {
 }
 
 resource "aws_api_gateway_integration_response" "options" {
-  for_each = var.enable_cors ? toset(local.all_unique_paths) : []
+  for_each   = var.enable_cors ? toset(local.all_unique_paths) : []
+  depends_on = [aws_api_gateway_integration.options]
 
   rest_api_id = aws_api_gateway_rest_api.this.id
   resource_id = (each.value == "" || each.value == "/") ? aws_api_gateway_rest_api.this.root_resource_id : aws_api_gateway_resource.endpoints[each.value].id
@@ -205,7 +206,8 @@ resource "aws_api_gateway_method_response" "proxy_options" {
 }
 
 resource "aws_api_gateway_integration_response" "proxy_options" {
-  for_each = var.enable_cors ? toset(local.proxy_paths) : []
+  for_each   = var.enable_cors ? toset(local.proxy_paths) : []
+  depends_on = [aws_api_gateway_integration.proxy_options]
 
   rest_api_id = aws_api_gateway_rest_api.this.id
   resource_id = aws_api_gateway_resource.proxy[each.value].id
