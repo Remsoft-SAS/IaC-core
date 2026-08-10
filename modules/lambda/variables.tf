@@ -125,6 +125,7 @@ variable "log_retention_days" {
   default     = 7
 }
 
+
 variable "tags" {
   description = "Additional tags for resources"
   type        = map(string)
