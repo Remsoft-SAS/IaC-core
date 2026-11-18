@@ -186,4 +186,6 @@ For documentation-only changes, check Markdown links, compare reference tables w
 
 ## License
 
-No `LICENSE` file is currently included. Making this repository public does not itself grant an open-source license. The maintainers need to select and add a license to establish reuse and redistribution terms before presenting this as a licensed open-source project.
+Copyright 2026 Remsoft SAS.
+
+Licensed under the [Apache License, Version 2.0](./LICENSE) (`Apache-2.0`). You may use, modify, and redistribute these modules, including commercially, subject to the license terms. The software is provided without warranties. See [NOTICE](./NOTICE) for attribution.

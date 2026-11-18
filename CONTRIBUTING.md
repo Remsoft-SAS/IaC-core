@@ -183,6 +183,6 @@ Before requesting review:
 
 Maintainers may request changes before merging. A pull request does not require you to publish a release or deploy infrastructure in a maintainer's AWS account.
 
-## License status
+## License
 
-The repository currently has no `LICENSE` file. See the [license status](./README.md#license); this guide does not establish licensing terms or ask contributors to accept a separate contributor agreement. Maintainers should establish the project license before presenting it as a licensed open-source project.
+This project is licensed under the [Apache License, Version 2.0](./LICENSE). Unless you explicitly state otherwise, contributions intentionally submitted for inclusion are provided under that license, as described in Section 5. Submit only material you have the right to contribute, and retain applicable third-party license and attribution notices. See [NOTICE](./NOTICE) for project attribution.
