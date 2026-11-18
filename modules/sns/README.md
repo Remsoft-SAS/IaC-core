@@ -1,64 +1,61 @@
-# 📢 AWS SNS Topic Module
+# SNS topic
 
-Professional Terraform module to manage Amazon Simple Notification Service (SNS) topics with built-in encryption (KMS) and dynamic access policy management.
+Creates a standard or FIFO topic with KMS encryption and an optional publisher policy.
 
-## 🚀 Key Features
-- **Encryption by Default:** Integrated support for AWS KMS encryption (defaults to `alias/aws/sns`).
-- **Standard & FIFO Support:** Easily toggle between standard and FIFO topics with name auto-suffixing.
-- **Dynamic Access Control:** Automatically manages Topic Policies via `allowed_publishers` variable (supports ARNs and Service Principals).
-- **Environment-Aware:** Automatic resource naming following the project-environment pattern.
-- **Micro-Infrastructure Ready:** Designed to work as a central hub for fan-out architectures (SNS -> SQS).
+[All modules](../../README.md#modules) · [Setup and provider configuration](../../README.md#requirements)
 
-## 📋 Technical Usage
+## Usage
 
-### Basic Topic
+This example is a module block for your own Terraform root configuration. Configure the AWS provider and credentials as described in the root README. Replace example resource identifiers before applying. `ref=main` tracks development; pin a reviewed commit SHA or an existing release tag for reproducibility.
+
 ```hcl
-module "notifications" {
-  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/sns?ref=main"
-  topic_name  = "app-events"
+module "example" {
+  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/sns?ref=main"
+
+  topic_name  = "example-events"
   environment = "develop"
 }
 ```
 
-### Advanced (Allowed Publishers + FIFO)
-```hcl
-module "security_notifications" {
-  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/sns?ref=main"
-  topic_name  = "security-alerts"
-  environment = "production"
-  
-  fifo_topic                  = true
-  content_based_deduplication = true
+For a local checkout, replace `source` with `"./IaC-core/modules/sns"` (relative to the calling configuration); omit `?ref=` for local paths.
 
-  # Allow specific services to publish
-  allowed_publishers = [
-    "s3.amazonaws.com",
-    "cloudwatch.amazonaws.com",
-    "arn:aws:iam::123456789012:role/my-app-role"
-  ]
-}
-```
+## Behavior and requirements
 
-## 📥 Inputs
+- Topic names append -environment and add .fifo when fifo_topic is true. Do not add the FIFO suffix yourself. Enable content_based_deduplication only for FIFO topics.
+- Encryption defaults to alias/aws/sns. For integrations that need custom KMS permissions, provide a customer-managed key and configure its policy separately.
+- allowed_publishers accepts IAM principal ARNs, 12-digit account IDs, and AWS service principal names. A nonempty list creates an sns:Publish policy; it does not create subscriptions.
+- The generated publisher policy has no source-account or source-ARN conditions. Manage a more restrictive topic policy externally if your service integration requires them, avoiding competing owners of the same policy.
+
+## Resources
+
+Resources below are declared by this module; optional resources are created only when their feature is enabled.
+
+- `aws_sns_topic.this`
+- `aws_sns_topic_policy.this`
+
+## Inputs
+
+Required means no Terraform default is declared. Optional inputs may still be required when enabling a feature. Types and defaults below match the source; `null` means unset.
 
 | Name | Description | Type | Default | Required |
-| :--- | :--- | :--- | :--- | :---: |
-| `topic_name` | Base name for the SNS topic | `string` | - | **Yes** |
-| `environment` | Deployment environment (develop/production) | `string` | - | **Yes** |
-| `display_name` | Name displayed in SMS notifications | `string` | `null` | No |
-| `fifo_topic` | Enable First-In-First-Out logic | `bool` | `false` | No |
-| `content_based_deduplication` | Enable deduplication for FIFO | `bool` | `false` | No |
-| `kms_master_key_id` | KMS Key ID for encryption | `string` | `alias/aws/sns` | No |
-| `allowed_publishers` | List of IAM ARNs or Service Principals | `list(string)` | `[]` | No |
-| `tags` | Additional resource tags | `map(string)` | `{}` | No |
+| --- | --- | --- | --- | --- |
+| `topic_name` | Base name of the SNS topic | `string` | — | Yes |
+| `environment` | Target environment (develop/production) | `string` | — | Yes |
+| `display_name` | Display name for the SNS topic (used for SMS) | `string` | `null` | No |
+| `fifo_topic` | Whether the topic should be FIFO | `bool` | `false` | No |
+| `content_based_deduplication` | Enable content-based deduplication (FIFO only) | `bool` | `false` | No |
+| `kms_master_key_id` | The ID of an AWS-managed customer master key (CMK) for Amazon SNS or a custom CMK | `string` | `"alias/aws/sns"` | No |
+| `allowed_publishers` | List of ARNs or Service Principals allowed to publish to this topic (e.g. ['s3.amazonaws.com', 'arn:aws:iam::...']) | `list(string)` | `[]` | No |
+| `tags` | Additional tags for resources | `map(string)` | `{}` | No |
 
-## 📤 Outputs
+## Outputs
 
 | Name | Description |
-| :--- | :--- |
-| `topic_arn` | Amazon Resource Name (ARN) of the topic |
-| `topic_id` | Unique ID of the topic |
-| `topic_name` | Final calculated name of the topic |
+| --- | --- |
+| `topic_arn` | The ARN of the SNS topic |
+| `topic_id` | The ID of the SNS topic |
+| `topic_name` | The name of the SNS topic |
 
----
-*Created by Remsoft SAS - Infrastructure as Code Standard.*
+## Source and maintenance
+
+See [main.tf](./main.tf) for resource behavior, [variables.tf](./variables.tf) for the input contract, and [outputs.tf](./outputs.tf) for returned values. Review `terraform plan` in your calling configuration before applying upgrades. See the [contribution guide](../../CONTRIBUTING.md) for repository conventions.

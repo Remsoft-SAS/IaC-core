@@ -1,163 +1,81 @@
-# Parameter Store Module
+# SSM Parameter Store
 
-Manages AWS SSM Parameters (String, StringList, SecureString) for configuration and secrets.
+Creates named parameters with Terraform-managed or externally managed values.
 
-Supports two lifecycle modes:
-- **Standard** — Terraform fully manages the value (default).
-- **External** — Terraform creates the parameter but ignores future value changes, for secrets rotated outside Terraform (e.g. manually, via Lambda, AWS Secrets Manager rotation).
+[All modules](../../README.md#modules) · [Setup and provider configuration](../../README.md#requirements)
 
----
+## Usage
+
+This example is a module block for your own Terraform root configuration. Configure the AWS provider and credentials as described in the root README. Replace example resource identifiers before applying. `ref=main` tracks development; pin a reviewed commit SHA or an existing release tag for reproducibility.
+
+```hcl
+module "example" {
+  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/parameter-store?ref=main"
+
+  environment = "develop"
+  parameters = [{
+    name  = "/example/develop/api-url"
+    type  = "String"
+    value = "https://api.example.com"
+  }]
+}
+```
+
+For a local checkout, replace `source` with `"./IaC-core/modules/parameter-store"` (relative to the calling configuration); omit `?ref=` for local paths.
+
+## Behavior and requirements
+
+- Parameter names are used verbatim; environment is a tag and is not added to paths. Names must be unique within parameters. Supported AWS types include String, StringList, and SecureString.
+- Each object can specify description, key_id, tier, data_type, ignore_value_changes, and tags. KMS key_id is passed only for SecureString; grant callers the appropriate KMS permissions.
+- ignore_value_changes creates the initial value and ignores subsequent value updates. Changing this flag moves the parameter between separate Terraform resource addresses, so review the plan and migrate state if preservation is required.
+- Values longer than 4096 Terraform characters automatically select Advanced tier. AWS limits are byte-based, so non-ASCII values may require an explicit tier. Advanced parameters incur charges and still have service size limits.
+- SecureString values and initial externally managed values remain in Terraform state. The parameters input is not marked sensitive. Keep secrets out of committed files and protect state and plan output.
+
+## Resources
+
+Resources below are declared by this module; optional resources are created only when their feature is enabled.
+
+- `aws_ssm_parameter.standard`
+- `aws_ssm_parameter.external`
 
 ## Inputs
 
-| Name | Description | Type | Required | Default |
-|---|---|---|---|---|
-| `environment` | Target environment (develop/production) | `string` | Yes | — |
-| `parameters` | List of parameters to create | `list(object)` | Yes | — |
+Required means no Terraform default is declared. Optional inputs may still be required when enabling a feature. Types and defaults below match the source; `null` means unset.
 
-### Parameter Object
+| Name | Description | Type | Default | Required |
+| --- | --- | --- | --- | --- |
+| `environment` | Target environment (develop/production) | `string` | — | Yes |
+| `parameters` | List of parameters to create in Parameter Store | `See schema below` | — | Yes |
 
-| Field | Description | Type | Required | Default |
-|---|---|---|---|---|
-| `name` | Full parameter name (e.g. `/app/env/key`) | `string` | Yes | — |
-| `value` | Value of the parameter | `string` | Yes | — |
-| `type` | `String`, `StringList`, or `SecureString` | `string` | Yes | — |
-| `description` | Human-readable description | `string` | No | `"Managed by Terraform"` |
-| `key_id` | KMS key ID or ARN for `SecureString` encryption | `string` | No | `null` (uses AWS default key) |
-| `tier` | `Standard` or `Advanced`. Auto-upgraded to `Advanced` if value exceeds 4096 bytes | `string` | No | `"Standard"` |
-| `data_type` | `text` or `aws:ec2:image` (for AMI ID parameters) | `string` | No | `"text"` |
-| `ignore_value_changes` | When `true`, Terraform ignores future changes to the value (external rotation mode) | `bool` | No | `false` |
-| `tags` | Additional tags to merge onto the parameter | `map(string)` | No | `{}` |
+### Object schemas
 
----
+Attributes without `optional(...)` must be provided, even when their names or comments suggest otherwise.
+
+#### `parameters`
+
+```hcl
+list(object({
+    name                 = string
+    value                = string
+    type                 = string
+    description          = optional(string, "Managed by Terraform")
+    key_id               = optional(string, null)
+    tier                 = optional(string, "Standard")
+    data_type            = optional(string, "text")
+    ignore_value_changes = optional(bool, false)
+    tags                 = optional(map(string), {})
+  }))
+```
 
 ## Outputs
 
 | Name | Description |
-|---|---|
-| `parameters` | Map of `name => ARN` for all created parameters |
-| `parameter_names` | List of all parameter names |
-| `parameter_arns` | List of all parameter ARNs |
-| `parameter_versions` | Map of `name => version` for all created parameters |
+| --- | --- |
+| `parameters` | Map of created parameters (name => arn) |
+| `parameter_names` | List of names of the created parameters |
+| `parameter_arns` | List of ARNs of the created parameters |
+| `parameter_versions` | Map of created parameters (name => version) |
 
----
+## Source and maintenance
 
-## Usage Examples
-
-### Basic — String parameter
-
-```hcl
-module "parameters" {
-  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/parameter-store?ref=main"
-
-  environment = "develop"
-  parameters = [
-    {
-      name  = "/myapp/develop/api_url"
-      value = "https://api.example.com"
-      type  = "String"
-    }
-  ]
-}
-```
-
-### SecureString with custom KMS key
-
-```hcl
-module "parameters" {
-  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/parameter-store?ref=main"
-
-  environment = "production"
-  parameters = [
-    {
-      name        = "/myapp/production/db_password"
-      value       = "initial-placeholder"
-      type        = "SecureString"
-      key_id      = "arn:aws:kms:us-east-1:123456789012:key/mrk-abc123"
-      description = "Database password — rotated externally"
-      ignore_value_changes = true
-    }
-  ]
-}
-```
-
-### Mixed — some Terraform-managed, some externally rotated
-
-```hcl
-module "parameters" {
-  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/parameter-store?ref=main"
-
-  environment = "production"
-  parameters = [
-    {
-      name  = "/myapp/production/feature_flag"
-      value = "true"
-      type  = "String"
-    },
-    {
-      name                 = "/myapp/production/api_secret"
-      value                = "placeholder"
-      type                 = "SecureString"
-      ignore_value_changes = true
-      description          = "Rotated by Lambda — Terraform ignores value drift"
-    }
-  ]
-}
-```
-
-### AMI ID parameter
-
-```hcl
-module "parameters" {
-  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/parameter-store?ref=main"
-
-  environment = "production"
-  parameters = [
-    {
-      name      = "/myapp/production/golden_ami"
-      value     = "ami-0abcdef1234567890"
-      type      = "String"
-      data_type = "aws:ec2:image"
-    }
-  ]
-}
-```
-
-### Using outputs to grant Lambda access
-
-```hcl
-module "parameters" {
-  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/parameter-store?ref=main"
-  environment = var.environment
-  parameters  = [...]
-}
-
-module "my_lambda" {
-  source        = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/lambda?ref=main"
-  function_name = "my-function"
-  environment   = var.environment
-
-  inline_policies = [
-    {
-      name = "SSMReadPolicy"
-      policy = jsonencode({
-        Version = "2012-10-17"
-        Statement = [{
-          Effect   = "Allow"
-          Action   = ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"]
-          Resource = module.parameters.parameter_arns
-        }]
-      })
-    }
-  ]
-}
-```
-
----
-
-## Notes
-
-- **Tier auto-upgrade**: If a parameter value exceeds 4096 bytes, the module automatically uses the `Advanced` tier regardless of the `tier` field.
-- **KMS**: When `type = "SecureString"` and no `key_id` is provided, AWS uses the default SSM KMS key (`alias/aws/ssm`). To use a customer-managed key, pass the key ARN via `key_id`. Ensure the consumer role also has `kms:Decrypt` on that key.
-- **External rotation**: Set `ignore_value_changes = true` for secrets that are rotated outside Terraform. The parameter is created with the provided `value` as the initial value, and Terraform will not overwrite it on subsequent applies.
-- **Path convention**: Using path-style names (e.g. `/app/env/key`) is recommended as it enables `ssm:GetParametersByPath` for IAM scoping and bulk reads.
+See [main.tf](./main.tf) for resource behavior, [variables.tf](./variables.tf) for the input contract, and [outputs.tf](./outputs.tf) for returned values. Review `terraform plan` in your calling configuration before applying upgrades. See the [contribution guide](../../CONTRIBUTING.md) for repository conventions.

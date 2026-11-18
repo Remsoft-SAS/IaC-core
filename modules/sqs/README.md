@@ -1,67 +1,81 @@
-# 📥 AWS SQS Queue Module
+# SQS queue
 
-Highly configurable Terraform module to manage Amazon SQS queues with built-in support for FIFO, Dead Letter Queues (DLQ), KMS Encryption, and seamless SNS Integration.
+Creates a standard or FIFO queue, optional dead-letter queue, and optional SNS subscription with a queue policy.
 
-## 🌟 Key Features
-- **Automated DLQ:** Automatically creates and links a Dead Letter Queue with configurable retry attempts.
-- **SNS Fan-out Integration:** built-in support for `aws_sns_topic_subscription` and automated IAM policy management when providing an `sns_topic_arn`.
-- **FIFO Support:** Easy toggle for FIFO queues with high-throughput options.
-- **Secure by Default:** Integrated KMS encryption (defaults to `alias/aws/sqs`).
-- **Dynamic Policies:** Automatically combines custom IAM policies with service-specific permissions (like SNS).
+[All modules](../../README.md#modules) · [Setup and provider configuration](../../README.md#requirements)
 
-## 📋 Technical Usage
+## Usage
 
-### Basic Queue
+This example is a module block for your own Terraform root configuration. Configure the AWS provider and credentials as described in the root README. Replace example resource identifiers before applying. `ref=main` tracks development; pin a reviewed commit SHA or an existing release tag for reproducibility.
+
 ```hcl
-module "my_queue" {
-  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/sqs?ref=main"
-  queue_name  = "orders"
-  environment = "develop"
+module "example" {
+  source = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/sqs?ref=main"
+
+  queue_name                 = "example-jobs"
+  environment                = "develop"
+  visibility_timeout_seconds = 180
 }
 ```
 
-### Advanced (SNS Subscription + Filter Policy)
-```hcl
-module "whatsapp_notifications" {
-  source      = "git::https://github.com/Remsoft-SAS/IaC-core.git//modules/sqs?ref=main"
-  queue_name  = "whatsapp-notifications"
-  environment = "production"
+For a local checkout, replace `source` with `"./IaC-core/modules/sqs"` (relative to the calling configuration); omit `?ref=` for local paths.
 
-  # Automatic SNS Integration
-  sns_topic_arn = "arn:aws:sns:us-east-1:123456789012:my-topic"
-  sns_filter_policy = jsonencode({
-    type = ["whatsapp"]
-  })
+## Behavior and requirements
 
-  enable_dlq        = true
-  max_receive_count = 3
-}
-```
+- Queue names append -environment and .fifo for FIFO mode. The DLQ name is queue_name-dlq-environment with the same FIFO suffix. Do not include .fifo in the base name.
+- A DLQ is enabled by default with max_receive_count = 5 and 14-day retention. The main queue retains messages for four days by default. Disabling the DLQ returns null DLQ outputs.
+- Encryption defaults to alias/aws/sqs. SNS or cross-account delivery to encrypted queues may need a customer-managed KMS key and explicit service/key permissions, which are not created here.
+- sns_topic_arn creates an SQS subscription and a source-ARN-restricted queue policy. sns_filter_policy is a JSON string and uses the default message-attribute scope. Raw delivery is not enabled, so SNS messages arrive in an SNS envelope.
+- queue_policy is merged with the generated SNS policy. Match queue/topic FIFO compatibility and provide unique deduplication/group IDs where required. high_throughput affects FIFO queues only.
+- Set visibility_timeout_seconds for your consumer duration and retries. The module creates no Lambda consumer or alarms.
 
-## 📥 Inputs
+## Resources
+
+Resources below are declared by this module; optional resources are created only when their feature is enabled.
+
+- `aws_sqs_queue.dlq`
+- `aws_sqs_queue.this`
+- `aws_sns_topic_subscription.this`
+- `aws_sqs_queue_policy.this`
+
+Data sources: `aws_iam_policy_document.combined`.
+
+## Inputs
+
+Required means no Terraform default is declared. Optional inputs may still be required when enabling a feature. Types and defaults below match the source; `null` means unset.
 
 | Name | Description | Type | Default | Required |
-| :--- | :--- | :--- | :--- | :---: |
-| `queue_name` | Base name for the SQS queue | `string` | - | **Yes** |
-| `environment` | Deployment environment (develop/production) | `string` | - | **Yes** |
-| `sns_topic_arn` | ARN of an SNS topic to subscribe to | `string` | `null` | No |
-| `sns_filter_policy` | Filter policy for SNS (JSON) | `string` | `null` | No |
-| `fifo_queue` | Enable First-In-First-Out logic | `bool` | `false` | No |
-| `visibility_timeout_seconds` | Message visibility timeout | `number` | `30` | No |
-| `enable_dlq` | Create a companion DLQ | `bool` | `true` | No |
-| `max_receive_count` | Retries before moving to DLQ | `number` | `5` | No |
-| `kms_key_id` | KMS Key for encryption | `string` | `alias/aws/sqs` | No |
-| `queue_policy` | Additional custom IAM policy (JSON) | `string` | `null` | No |
-| `tags` | Additional resource tags | `map(string)` | `{}` | No |
+| --- | --- | --- | --- | --- |
+| `queue_name` | Base name of the SQS queue | `string` | — | Yes |
+| `environment` | Target environment (develop/production) | `string` | — | Yes |
+| `delay_seconds` | Delay time in seconds for message delivery | `number` | `0` | No |
+| `max_message_size` | Maximum message size in bytes | `number` | `262144` | No |
+| `message_retention_seconds` | Message retention time in seconds | `number` | `345600` | No |
+| `receive_wait_time_seconds` | Wait time for receiving messages (Long Polling) | `number` | `10` | No |
+| `visibility_timeout_seconds` | Message visibility timeout in seconds | `number` | `30` | No |
+| `fifo_queue` | Indicates if the queue is FIFO | `bool` | `false` | No |
+| `content_based_deduplication` | Enable content-based deduplication (FIFO only) | `bool` | `false` | No |
+| `high_throughput` | Enable high throughput for FIFO queues | `bool` | `false` | No |
+| `kms_key_id` | ID or ARN of the KMS key for encryption | `string` | `"alias/aws/sqs"` | No |
+| `enable_dlq` | Enable Dead Letter Queue | `bool` | `true` | No |
+| `max_receive_count` | Maximum number of times a message is received before being moved to DLQ | `number` | `5` | No |
+| `dlq_message_retention_seconds` | Message retention time in DLQ in seconds | `number` | `1209600` | No |
+| `sns_topic_arn` | ARN of an SNS topic to subscribe this queue to | `string` | `null` | No |
+| `sns_filter_policy` | Filter policy for the SNS subscription (JSON format) | `string` | `null` | No |
+| `queue_policy` | Additional queue access policy in JSON format (optional) | `string` | `null` | No |
+| `tags` | Additional tags for the resource | `map(string)` | `{}` | No |
 
-## 📤 Outputs
+## Outputs
 
 | Name | Description |
-| :--- | :--- |
-| `queue_arn` | Amazon Resource Name (ARN) of the main queue |
-| `queue_url` | URL of the main queue |
-| `dlq_arn` | ARN of the Dead Letter Queue (if enabled) |
-| `dlq_url` | URL of the Dead Letter Queue (if enabled) |
+| --- | --- |
+| `queue_name` | Final name of the SQS queue |
+| `queue_url` | SQS queue URL |
+| `queue_arn` | SQS queue ARN |
+| `dlq_name` | Dead Letter Queue name (if enabled) |
+| `dlq_url` | Dead Letter Queue URL (if enabled) |
+| `dlq_arn` | Dead Letter Queue ARN (if enabled) |
 
----
-*Created by Remsoft SAS - Infrastructure as Code Standard.*
+## Source and maintenance
+
+See [main.tf](./main.tf) for resource behavior, [variables.tf](./variables.tf) for the input contract, and [outputs.tf](./outputs.tf) for returned values. Review `terraform plan` in your calling configuration before applying upgrades. See the [contribution guide](../../CONTRIBUTING.md) for repository conventions.
