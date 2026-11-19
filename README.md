@@ -63,6 +63,53 @@ aws sts get-caller-identity
 
 For multiple regions, define provider aliases in your root configuration and pass the appropriate provider with `providers = { aws = aws.us_east_1 }`. CloudFront certificate lookup uses the provider it receives, so pass a us-east-1 provider for custom certificates. See the Cognito README for its same-provider custom-domain limitation.
 
+## Deploying consumer stacks
+
+IaC-core is a module library and has no stack of its own to deploy. A consuming infrastructure repository should keep its root Terraform configurations, backend, provider, and deployment workflow together. Each independent stack directory is its own Terraform root and should have its own state. A single S3 bucket can hold all states; give each stack and environment a unique `key`.
+
+For example, a consumer repository with `backend-dashboard/` can define `backend-dashboard/backend.tf`:
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket       = "<shared-state-bucket>"
+    key          = "<project>/<stack>/<environment>/terraform.tfstate"
+    region       = "<state-bucket-region>"
+    encrypt      = true
+    use_lockfile = true
+  }
+}
+```
+
+Terraform backend blocks do not support input variables. For CI/CD where the environment or backend values are selected by the caller, declare an empty S3 backend in that stack and supply its settings to `terraform init`:
+
+```hcl
+terraform {
+  backend "s3" {}
+}
+```
+
+```bash
+terraform -chdir=backend-dashboard init \
+  -backend-config="bucket=$TF_STATE_BUCKET" \
+  -backend-config="key=$PROJECT/$STACK/$ENVIRONMENT/terraform.tfstate" \
+  -backend-config="region=$TF_STATE_REGION" \
+  -backend-config="encrypt=true" \
+  -backend-config="use_lockfile=true"
+
+terraform -chdir=backend-dashboard plan \
+  -var-file="$ENVIRONMENT.tfvars" \
+  -out=tfplan
+```
+
+Configure `TF_STATE_BUCKET` and `TF_STATE_REGION` in the consumer's CI environment/repository variables. The bucket must already exist, have versioning enabled, and be in the configured region. The AWS identity used by Terraform needs access to the state objects and S3 lock files. Supply credentials through the standard AWS credential chain or CI identity federation such as OIDC; do not store access keys or secret values in Terraform files, backend configuration committed to Git, or state paths.
+
+Use a distinct state key for every combination of project, stack, and environment. For example, `rempays/dashboard/backend-dashboard/develop/terraform.tfstate` and `rempays/dashboard/backend-dashboard/production/terraform.tfstate` may share one bucket without sharing state. Treat a change to an existing key as a state migration: back up the state and follow Terraform's backend migration procedure rather than silently pointing at a new empty key.
+
+A reusable deployment workflow belongs in the consuming repository or a dedicated reusable-workflows repository. Its caller should provide the stack path, environment, project label, AWS region and identity, backend bucket/key/region, variable file, and any secret Terraform inputs. The workflow should initialize the backend before planning, show the plan for review, and require the consumer's protected GitHub Environment approval before applying or destroying. Keep destructive operations behind required reviewers; do not use an unconditional destroy or force-recreate step. The workflow should not create a dummy Lambda ZIP: [the Lambda module creates its own fallback archive](./modules/lambda/main.tf) when no deployment package is supplied.
+
+The stacks in an application repository may use `develop.tfvars` and `production.tfvars`; pass the matching file explicitly to `plan` and `apply`. Backend configuration and AWS provider configuration are separate: the backend region is where the state bucket lives, while the AWS provider region is where the stack's resources are deployed. They may be different.
+
 ## Quick start: reference a module from Git
 
 Create a separate project directory and save the provider configuration above in `main.tf`. Append this queue module and output:
