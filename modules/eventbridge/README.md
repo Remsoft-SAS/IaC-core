@@ -1,6 +1,6 @@
 # EventBridge buses, rules, targets, and schedules
 
-Creates or references an EventBridge event bus, optional event pattern or cron/rate rules with targets, and optional EventBridge Scheduler schedules. You can use the bus, rules, and Scheduler independently; names, target ARNs, IAM roles, inputs, timing, retry policy, and dead-letter destinations are supplied by the caller.
+Creates or references an EventBridge event bus, optional event pattern or cron/rate rules with targets, and optional EventBridge Scheduler schedules. For same-account Lambda schedules, the module creates a narrowly scoped Scheduler execution role when `target_role_arn` is omitted. The caller can still provide an existing role when needed. EventBridge rule target roles remain caller-managed.
 
 [All modules](../../README.md#modules) · [Setup and provider configuration](../../README.md#requirements)
 
@@ -31,9 +31,8 @@ module "example" {
   schedules = {
     nightly = {
       schedule_expression = "cron(0 2 * * ? *)"
-      target_arn           = "arn:aws:lambda:us-east-1:123456789012:function:nightly-job"
-      target_role_arn      = "arn:aws:iam::123456789012:role/scheduler-invoke-nightly-job"
-      target_input         = jsonencode({ source = "eventbridge-scheduler" })
+      target_arn   = "arn:aws:lambda:us-east-1:123456789012:function:nightly-job"
+      target_input = jsonencode({ source = "eventbridge-scheduler" })
     }
   }
 }
@@ -45,9 +44,9 @@ For a local checkout, replace `source` with `"./IaC-core/modules/eventbridge"` (
 
 - Created bus, rule, and schedule names append `-environment`. When `create = false`, rules are attached to `existing_bus_arn`; this input must be the bus name accepted by the EventBridge rule API. `bus_arn` returns the supplied ARN, while `bus_name` also returns the supplied value because the module does not look up or parse an existing bus.
 - `rules` creates EventBridge rules on the selected bus. Set `event_pattern` to match events, `schedule_expression` to a `rate(...)` or `cron(...)` expression, or use both where AWS supports it. `enabled` controls rule state. Rule `targets` is a map keyed by stable target IDs; each target needs an ARN and may have an IAM role ARN and JSON input.
-- `schedules` creates independent EventBridge Scheduler schedules, which can invoke supported AWS targets without routing through an event bus. Schedule expressions support `at(...)`, `rate(...)`, and `cron(...)`; `schedule_expression_timezone` defaults to UTC. `state` accepts `ENABLED` or `DISABLED`. Configure an IAM role trusted by `scheduler.amazonaws.com` and grant it permission to invoke the target.
+- `schedules` creates independent EventBridge Scheduler schedules, which can invoke supported AWS targets without routing through an event bus. Schedule expressions support `at(...)`, `rate(...)`, and `cron(...)`; `schedule_expression_timezone` defaults to UTC. `state` accepts `ENABLED` or `DISABLED`. For a same-account Lambda ARN, the module creates a role trusted by `scheduler.amazonaws.com` and grants it only `lambda:InvokeFunction` on that ARN. Other target types and cross-account Lambda targets require a caller-supplied role.
 - Set `flexible_time_window_mode` to `FLEXIBLE` and provide `flexible_time_window_minutes` to permit delivery within a window; the default `OFF` requests the scheduled time. Optional retry limits and a dead-letter queue ARN are passed to Scheduler.
-- This module does not create target resources, IAM roles or policies, custom event-bus permissions, archives, replay, or Scheduler groups. The caller owns those resources and any cross-account/service authorization. Target role ARNs must be usable by EventBridge Rules or Scheduler as appropriate.
+- The module does not create Lambda targets, Scheduler groups, custom event-bus permissions, archives, or replay. The caller owns those resources and any cross-account/service authorization. Rule target role ARNs remain caller-managed.
 - Rule targets attach to the bus created or referenced by this module. Scheduler schedules are regional resources and are separate from EventBridge event-bus rules. Schedules do not accept the custom bus ARN as a destination unless using a supported universal target invocation.
 - Use stable map keys: changing a rule, target, or schedule key changes Terraform resource addresses and can replace that configuration. Review plans before changing keys or schedule expressions.
 
@@ -59,6 +58,8 @@ Resources below are declared by this module; optional resources are created only
 - `aws_cloudwatch_event_rule.this` (for each entry in `rules`)
 - `aws_cloudwatch_event_target.this` (for each target in each rule)
 - `aws_scheduler_schedule.this` (for each entry in `schedules`)
+- `aws_iam_role.scheduler_lambda` (for same-account Lambda schedules without a supplied role)
+- `aws_iam_role_policy.scheduler_lambda_invoke` (scoped to each corresponding Lambda target)
 
 ## Inputs
 
@@ -82,7 +83,7 @@ Supply at least one of `event_pattern` or `schedule_expression`. Targets are opt
 
 ### `schedules` object
 
-Each map value requires `schedule_expression`, `target_arn`, and `target_role_arn`. Optional attributes are `description` (default `""`), `schedule_expression_timezone` (`"UTC"`), `state` (`"ENABLED"`), `start_date`, `end_date`, `flexible_time_window_mode` (`"OFF"`), `flexible_time_window_minutes`, `target_input`, `retry_maximum_event_age`, `retry_maximum_attempts`, `dead_letter_arn`, and `group_name` (`"default"`). Use RFC3339 timestamps for start/end dates. Flexible mode requires `flexible_time_window_minutes`.
+Each map value requires `schedule_expression` and `target_arn`. `target_role_arn` is optional for same-account Lambda targets; when omitted, the module creates an execution role scoped to that Lambda and schedule group. Provide it for non-Lambda or cross-account targets. Other optional attributes are `description` (default `""`), `schedule_expression_timezone` (`"UTC"`), `state` (`"ENABLED"`), `start_date`, `end_date`, `flexible_time_window_mode` (`"OFF"`), `flexible_time_window_minutes`, `target_input`, `retry_maximum_event_age`, `retry_maximum_attempts`, `dead_letter_arn`, and `group_name` (`"default"`). Use RFC3339 timestamps for start/end dates. Flexible mode requires `flexible_time_window_minutes`.
 
 ## Outputs
 
@@ -92,6 +93,7 @@ Each map value requires `schedule_expression`, `target_arn`, and `target_role_ar
 | `bus_arn` | Created or supplied event bus ARN. |
 | `rule_arns` | Map of rule keys to created rule ARNs. |
 | `schedule_arns` | Map of schedule keys to created schedule ARNs. |
+| `schedule_role_arns` | Map of schedule keys to the generated or caller-supplied execution role ARN. |
 
 ## Source and maintenance
 

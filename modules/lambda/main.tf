@@ -16,6 +16,14 @@ locals {
   is_apigateway = local.type == "apigateway" ? true : (local.type == "" ? length(regexall("execute-api|:apigateway:", local.arn)) > 0 : false)
   is_sns        = local.type == "sns" ? true : (local.type == "" ? length(regexall(":sns:", local.arn)) > 0 : false)
   is_s3         = local.type == "s3" ? true : (local.type == "" ? length(regexall("^arn:aws:s3:::", local.arn)) > 0 : false)
+
+  # A source-only bootstrap archive can run on interpreted runtimes. Compiled
+  # runtimes (Java, .NET, Go, custom) need a real build artifact from the caller.
+  dummy_is_python = startswith(var.runtime, "python")
+  dummy_module    = split(".", var.handler)[0]
+  dummy_entry     = length(split(".", var.handler)) > 1 ? split(".", var.handler)[1] : "handler"
+  dummy_filename  = "${local.dummy_module}.${local.dummy_is_python ? "py" : "js"}"
+  dummy_content   = local.dummy_is_python ? "def ${local.dummy_entry}(event, context):\n    return {'statusCode': 200, 'body': 'Hello World'}\n" : "exports.${local.dummy_entry} = async () => ({ statusCode: 200, body: 'Hello World' });"
 }
 
 # ── IAM Execution Role ──────────────────────────────────────────────────────
@@ -97,8 +105,15 @@ data "archive_file" "dummy" {
   type        = "zip"
   output_path = "${path.module}/dummy.zip"
   source {
-    content  = "exports.handler = async () => ({ statusCode: 200, body: 'Hello World' });"
-    filename = "index.js"
+    content  = local.dummy_content
+    filename = local.dummy_filename
+  }
+
+  lifecycle {
+    precondition {
+      condition     = local.dummy_is_python || startswith(var.runtime, "nodejs")
+      error_message = "When filename and s3_bucket are omitted, automatic bootstrap code supports only Python and Node.js runtimes. Supply a deployment ZIP (filename or S3 object) for compiled or other runtimes."
+    }
   }
 }
 

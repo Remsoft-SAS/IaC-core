@@ -24,7 +24,7 @@ For a local checkout, replace `source` with `"./IaC-core/modules/lambda"` (relat
 
 ## Behavior and requirements
 
-- Build function.zip before planning. Choose a local filename OR an S3 bucket/key, not both. The module does not build application code or support container images. With neither source it generates a Node.js index.handler Hello World ZIP; keep the default runtime/handler for that fallback.
+- Choose a local filename OR an S3 bucket/key, not both. The module does not build application code or support container images. If neither code source is set, it creates a runtime-matched Hello World bootstrap ZIP for Node.js and Python using the configured handler module and function name. For Java, .NET, Go, Ruby, or custom runtimes, supply a real deployment ZIP because Terraform cannot compile those runtimes' artifacts from source text. The bootstrap is for creating/testing the infrastructure; it is not your application package.
 - Names append -environment. The function ignores changes to filename, s3_key, s3_object_version, source_code_hash, and environment. Deploy subsequent application code through your deployment pipeline; changing these Terraform inputs alone will not update code.
 - Nonempty environment_variables invokes a local-exec AWS CLI + jq merge. Install both tools on the machine running Terraform and configure CLI credentials and region to match the Terraform provider; provider aliases and assume-role settings are not inherited by the CLI. The caller needs lambda:GetFunctionConfiguration and lambda:UpdateFunctionConfiguration.
 - The merge preserves keys omitted from the input; removing a key does not delete it remotely. Values are interpolated into a shell command, so avoid shell-sensitive or untrusted values and manage such environment updates through a controlled deployment process.
@@ -34,6 +34,8 @@ For a local checkout, replace `source` with `"./IaC-core/modules/lambda"` (relat
 - VPC configuration attaches the managed VPC execution policy but creates no network resources. Supply subnets/security groups and outbound connectivity as required. inline_policies accepts unique names with JSON policy strings; layer_arns accepts versioned layer ARNs.
 
 Providers: `hashicorp/aws`, `hashicorp/archive` (fallback ZIP), and `hashicorp/null` (environment merge). Other modules use `hashicorp/aws`. See the root README for version guidance.
+
+When using the generated Python bootstrap, set a Python handler such as `app.handler`; the module creates `app.py` with that handler function. For Node.js, set a handler such as `index.handler`; it creates `index.js`. Unsupported runtime families fail validation with a message asking for a ZIP, instead of pairing a JavaScript archive with an incompatible runtime.
 
 ## SQS consumer
 
@@ -92,7 +94,7 @@ Required means no Terraform default is declared. Optional inputs may still be re
 | `runtime` | Execution runtime (e.g., nodejs22.x) | `string` | `"nodejs22.x"` | No |
 | `memory_size` | Allocated memory in MB | `number` | `128` | No |
 | `timeout` | Maximum execution time in seconds | `number` | `30` | No |
-| `filename` | Path to local .zip file (for local deployments) | `string` | `null` | No |
+| `filename` | Path to local .zip file (for local deployments); when omitted with s3_bucket, generates a Node.js/Python bootstrap ZIP. | `string` | `null` | No |
 | `s3_bucket` | S3 bucket where the code is located | `string` | `null` | No |
 | `s3_key` | S3 key for the code | `string` | `null` | No |
 | `s3_object_version` | S3 object version | `string` | `null` | No |

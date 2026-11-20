@@ -19,3 +19,8 @@ output "schedule_arns" {
   description = "Map of created EventBridge Scheduler schedule ARNs keyed by schedule name."
   value       = { for key, schedule in aws_scheduler_schedule.this : key => schedule.arn }
 }
+
+output "schedule_role_arns" {
+  description = "Map of schedule keys to generated or caller-supplied execution role ARNs."
+  value       = { for key, schedule in var.schedules : key => schedule.target_role_arn != null ? schedule.target_role_arn : try(aws_iam_role.scheduler_lambda[key].arn, null) }
+}

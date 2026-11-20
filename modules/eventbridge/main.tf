@@ -1,5 +1,18 @@
 # modules/eventbridge/main.tf
 
+data "aws_caller_identity" "current" {}
+data "aws_partition" "current" {}
+data "aws_region" "current" {}
+
+locals {
+  lambda_schedules_without_role = {
+    for key, schedule in var.schedules : key => schedule
+    if schedule.target_role_arn == null &&
+    can(regex("^arn:[^:]+:lambda:", schedule.target_arn)) &&
+    try(split(":", schedule.target_arn)[4] == data.aws_caller_identity.current.account_id, false)
+  }
+}
+
 resource "aws_cloudwatch_event_bus" "this" {
   count = var.create ? 1 : 0
 
@@ -45,6 +58,45 @@ resource "aws_cloudwatch_event_target" "this" {
   input          = each.value.target.input
 }
 
+resource "aws_iam_role" "scheduler_lambda" {
+  for_each = local.lambda_schedules_without_role
+
+  name = "${substr(replace("${each.key}-${var.environment}", "/[^0-9A-Za-z+=,.@_-]/", "-"), 0, 55)}-${substr(sha1(each.key), 0, 8)}"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "scheduler.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+      Condition = {
+        StringEquals = {
+          "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+          "aws:SourceArn"     = "arn:${data.aws_partition.current.partition}:scheduler:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:schedule-group/${each.value.group_name}"
+        }
+      }
+    }]
+  })
+
+  tags = merge(var.tags, { Name = "${each.key}-${var.environment}-scheduler-role" })
+}
+
+resource "aws_iam_role_policy" "scheduler_lambda_invoke" {
+  for_each = local.lambda_schedules_without_role
+
+  name = "${substr(replace("${each.key}-${var.environment}", "/[^0-9A-Za-z+=,.@_-]/", "-"), 0, 45)}-${substr(sha1(each.key), 0, 8)}-invoke"
+  role = aws_iam_role.scheduler_lambda[each.key].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["lambda:InvokeFunction"]
+      Resource = each.value.target_arn
+    }]
+  })
+}
+
 resource "aws_scheduler_schedule" "this" {
   for_each = var.schedules
 
@@ -58,20 +110,20 @@ resource "aws_scheduler_schedule" "this" {
   group_name                   = each.value.group_name
 
   flexible_time_window {
-    mode = each.value.flexible_time_window_mode
+    mode                      = each.value.flexible_time_window_mode
     maximum_window_in_minutes = each.value.flexible_time_window_mode == "FLEXIBLE" ? each.value.flexible_time_window_minutes : null
   }
 
   target {
     arn      = each.value.target_arn
-    role_arn = each.value.target_role_arn
+    role_arn = each.value.target_role_arn != null ? each.value.target_role_arn : try(aws_iam_role.scheduler_lambda[each.key].arn, null)
     input    = each.value.target_input
 
     dynamic "retry_policy" {
       for_each = each.value.retry_maximum_attempts != null || each.value.retry_maximum_event_age != null ? [1] : []
       content {
         maximum_event_age_in_seconds = each.value.retry_maximum_event_age
-        maximum_retry_attempts      = each.value.retry_maximum_attempts
+        maximum_retry_attempts       = each.value.retry_maximum_attempts
       }
     }
 
@@ -87,6 +139,14 @@ resource "aws_scheduler_schedule" "this" {
     precondition {
       condition     = each.value.flexible_time_window_mode != "FLEXIBLE" || each.value.flexible_time_window_minutes != null
       error_message = "Set flexible_time_window_minutes when flexible_time_window_mode is FLEXIBLE."
+    }
+
+    precondition {
+      condition = each.value.target_role_arn != null || (
+        can(regex("^arn:[^:]+:lambda:", each.value.target_arn)) &&
+        try(split(":", each.value.target_arn)[4] == data.aws_caller_identity.current.account_id, false)
+      )
+      error_message = "Automatic Scheduler roles support Lambda targets in the same AWS account. Provide target_role_arn for cross-account Lambda targets or other services."
     }
   }
 }

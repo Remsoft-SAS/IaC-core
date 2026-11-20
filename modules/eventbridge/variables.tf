@@ -45,7 +45,7 @@ variable "rules" {
 }
 
 variable "schedules" {
-  description = "EventBridge Scheduler schedules. Target IAM roles and target permissions are supplied and managed by the caller."
+  description = "EventBridge Scheduler schedules. Same-account Lambda targets get a generated least-privilege execution role when target_role_arn is omitted."
   type = map(object({
     description                  = optional(string, "")
     schedule_expression          = string
@@ -56,13 +56,23 @@ variable "schedules" {
     flexible_time_window_mode    = optional(string, "OFF")
     flexible_time_window_minutes = optional(number)
     target_arn                   = string
-    target_role_arn              = string
+    target_role_arn              = optional(string)
     target_input                 = optional(string)
     retry_maximum_event_age      = optional(number)
     retry_maximum_attempts       = optional(number)
     dead_letter_arn              = optional(string)
     group_name                   = optional(string, "default")
   }))
+
+  validation {
+    condition = alltrue([
+      for schedule in values(var.schedules) :
+      (schedule.target_role_arn == null || try(trimspace(schedule.target_role_arn), "") != "") &&
+      (schedule.target_role_arn != null || can(regex("^arn:[^:]+:lambda:", schedule.target_arn)))
+    ])
+    error_message = "Omit target_role_arn only for Lambda targets; other target types require a non-empty target_role_arn."
+  }
+
   default = {}
 }
 
