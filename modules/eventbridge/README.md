@@ -1,6 +1,6 @@
-# EventBridge event bus
+# EventBridge buses, rules, targets, and schedules
 
-Creates a custom event bus or exposes an existing bus ARN without creating resources.
+Creates or references an EventBridge event bus, optional event pattern or cron/rate rules with targets, and optional EventBridge Scheduler schedules. You can use the bus, rules, and Scheduler independently; names, target ARNs, IAM roles, inputs, timing, retry policy, and dead-letter destinations are supplied by the caller.
 
 [All modules](../../README.md#modules) · [Setup and provider configuration](../../README.md#requirements)
 
@@ -14,6 +14,28 @@ module "example" {
 
   bus_name    = "example-events"
   environment = "develop"
+
+  rules = {
+    order-created = {
+      description   = "Process order-created events"
+      event_pattern = jsonencode({ source = ["example.orders"] })
+      targets = {
+        processor = {
+          arn      = "arn:aws:lambda:us-east-1:123456789012:function:order-processor"
+          role_arn = "arn:aws:iam::123456789012:role/eventbridge-invoke-order-processor"
+        }
+      }
+    }
+  }
+
+  schedules = {
+    nightly = {
+      schedule_expression = "cron(0 2 * * ? *)"
+      target_arn           = "arn:aws:lambda:us-east-1:123456789012:function:nightly-job"
+      target_role_arn      = "arn:aws:iam::123456789012:role/scheduler-invoke-nightly-job"
+      target_input         = jsonencode({ source = "eventbridge-scheduler" })
+    }
+  }
 }
 ```
 
@@ -21,15 +43,22 @@ For a local checkout, replace `source` with `"./IaC-core/modules/eventbridge"` (
 
 ## Behavior and requirements
 
-- Created bus names append -environment. Rules, targets, publisher IAM permissions, cross-account bus policies, archives, and replay are managed separately.
-- For reuse set create = false and existing_bus_arn to the existing ARN. bus_name and environment remain required inputs even in this mode.
-- When create = false, both bus_name and bus_arn outputs return existing_bus_arn. Consumers requiring a literal name must supply or derive that name separately. No lookup verifies that the existing bus exists.
+- Created bus, rule, and schedule names append `-environment`. When `create = false`, rules are attached to `existing_bus_arn`; this input must be the bus name accepted by the EventBridge rule API. `bus_arn` returns the supplied ARN, while `bus_name` also returns the supplied value because the module does not look up or parse an existing bus.
+- `rules` creates EventBridge rules on the selected bus. Set `event_pattern` to match events, `schedule_expression` to a `rate(...)` or `cron(...)` expression, or use both where AWS supports it. `enabled` controls rule state. Rule `targets` is a map keyed by stable target IDs; each target needs an ARN and may have an IAM role ARN and JSON input.
+- `schedules` creates independent EventBridge Scheduler schedules, which can invoke supported AWS targets without routing through an event bus. Schedule expressions support `at(...)`, `rate(...)`, and `cron(...)`; `schedule_expression_timezone` defaults to UTC. `state` accepts `ENABLED` or `DISABLED`. Configure an IAM role trusted by `scheduler.amazonaws.com` and grant it permission to invoke the target.
+- Set `flexible_time_window_mode` to `FLEXIBLE` and provide `flexible_time_window_minutes` to permit delivery within a window; the default `OFF` requests the scheduled time. Optional retry limits and a dead-letter queue ARN are passed to Scheduler.
+- This module does not create target resources, IAM roles or policies, custom event-bus permissions, archives, replay, or Scheduler groups. The caller owns those resources and any cross-account/service authorization. Target role ARNs must be usable by EventBridge Rules or Scheduler as appropriate.
+- Rule targets attach to the bus created or referenced by this module. Scheduler schedules are regional resources and are separate from EventBridge event-bus rules. Schedules do not accept the custom bus ARN as a destination unless using a supported universal target invocation.
+- Use stable map keys: changing a rule, target, or schedule key changes Terraform resource addresses and can replace that configuration. Review plans before changing keys or schedule expressions.
 
 ## Resources
 
 Resources below are declared by this module; optional resources are created only when their feature is enabled.
 
 - `aws_cloudwatch_event_bus.this`
+- `aws_cloudwatch_event_rule.this` (for each entry in `rules`)
+- `aws_cloudwatch_event_target.this` (for each target in each rule)
+- `aws_scheduler_schedule.this` (for each entry in `schedules`)
 
 ## Inputs
 
@@ -41,7 +70,19 @@ Required means no Terraform default is declared. Optional inputs may still be re
 | `environment` | Deployment environment. | `string` | — | Yes |
 | `create` | Create a bus; when false, return existing_bus_arn. | `bool` | `true` | No |
 | `existing_bus_arn` | Existing bus ARN used when create is false. | `string` | `""` | No |
+| `rules` | EventBridge event rules and targets. | `map(object)` | `{}` | No |
+| `schedules` | EventBridge Scheduler schedules and target configuration. | `map(object)` | `{}` | No |
 | `tags` | Additional resource tags. | `map(string)` | `{}` | No |
+
+### `rules` object
+
+Each map value accepts `description` (string, default `""`), `event_pattern` (string, optional JSON), `schedule_expression` (string, optional), `enabled` (bool, default `true`), and `targets` (map, default `{}`). Each target accepts required `arn`, optional `role_arn`, and optional JSON `input`.
+
+Supply at least one of `event_pattern` or `schedule_expression`. Targets are optional. If your target requires an invocation role, provide one and configure its trust and permissions outside this module.
+
+### `schedules` object
+
+Each map value requires `schedule_expression`, `target_arn`, and `target_role_arn`. Optional attributes are `description` (default `""`), `schedule_expression_timezone` (`"UTC"`), `state` (`"ENABLED"`), `start_date`, `end_date`, `flexible_time_window_mode` (`"OFF"`), `flexible_time_window_minutes`, `target_input`, `retry_maximum_event_age`, `retry_maximum_attempts`, `dead_letter_arn`, and `group_name` (`"default"`). Use RFC3339 timestamps for start/end dates. Flexible mode requires `flexible_time_window_minutes`.
 
 ## Outputs
 
@@ -49,6 +90,8 @@ Required means no Terraform default is declared. Optional inputs may still be re
 | --- | --- |
 | `bus_name` | Created bus name; existing bus ARN when create is false. |
 | `bus_arn` | Created or supplied event bus ARN. |
+| `rule_arns` | Map of rule keys to created rule ARNs. |
+| `schedule_arns` | Map of schedule keys to created schedule ARNs. |
 
 ## Source and maintenance
 

@@ -2,10 +2,20 @@
 
 output "bus_name" {
   description = "Nombre del EventBridge bus"
-  value       = var.create ? aws_cloudwatch_event_bus.this[0].name : var.existing_bus_arn
+  value       = local.bus_name
 }
 
 output "bus_arn" {
   description = "ARN del EventBridge bus"
   value       = var.create ? aws_cloudwatch_event_bus.this[0].arn : var.existing_bus_arn
+}
+
+output "rule_arns" {
+  description = "Map of created EventBridge rule ARNs keyed by rule name."
+  value       = { for key, rule in aws_cloudwatch_event_rule.this : key => rule.arn }
+}
+
+output "schedule_arns" {
+  description = "Map of created EventBridge Scheduler schedule ARNs keyed by schedule name."
+  value       = { for key, schedule in aws_scheduler_schedule.this : key => schedule.arn }
 }
